@@ -23,7 +23,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/izakmarais/report/grafana"
+	"github.com/izakmarais/reporter/grafana"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

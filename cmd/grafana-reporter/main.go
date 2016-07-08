@@ -24,8 +24,8 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/izakmarais/report"
-	"github.com/izakmarais/report/grafana"
+	"github.com/izakmarais/reporter"
+	"github.com/izakmarais/reporter/grafana"
 )
 
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
