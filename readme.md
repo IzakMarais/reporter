@@ -27,11 +27,11 @@ Build and install:
 
 Running without any flags assumes Grafana is reachable at _localhost:3000_:
 
-    ./bin/grafana-reporter
+    grafana-reporter
 
 Query available flags:
 
-    ./bin/grafana-reporter --help
+    grafana-reporter --help
 
 ### Generate dashboard
 
@@ -41,7 +41,7 @@ The reporter serves a pdf report on the specified port at:
 
 where _dashBoardName_ is the same name as used in the Grafana dasbhoard's URL. E.g. _backend-dashboard_ from _http://grafana-host:3000/dashboard/db/backend-dashboard_.
 
-In addition, the endpoint supports the same time query parameters as Grafana. This means that you can create a Grafana Link and enable forwarding the _Time range_ to. The link will render a dashboard with your current dashboard time range.
+In addition, the endpoint supports the same time query parameters as Grafana. This means that you can create a Grafana Link and enable the _Time range_ forwarding check-box. The link will render a dashboard with your current dashboard time range.
 
 ### Test
 
