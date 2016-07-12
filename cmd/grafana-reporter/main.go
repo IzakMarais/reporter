@@ -30,7 +30,6 @@ import (
 
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
-var apiToken = flag.String("apitoken", "", "Grafana API Token")
 
 func main() {
 	flag.Parse()
@@ -48,7 +47,7 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	g := grafana.NewClient("http://" + *ip, *apiToken)
+	g := grafana.NewClient("http://" + *ip, apiToken(req))
 	rep := report.New(g, dashName(req), time(req))
 
 	file := rep.Generate()
@@ -71,6 +70,12 @@ func time(r *http.Request) grafana.TimeRange {
 	t := grafana.NewTimeRange(params.Get("from"), params.Get("to"))
 	log.Println("Called with time range:", t)
 	return t
+}
+
+func apiToken(r *http.Request) string {
+	apiToken := r.URL.Query().Get("apitoken")
+	log.Println("Called with time range:", apiToken)
+	return apiToken
 }
 
 func stopIf(err error) {
