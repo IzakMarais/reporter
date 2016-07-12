@@ -50,7 +50,7 @@ func serveReport(w http.ResponseWriter, req *http.Request) {
 	g := grafana.NewClient("http://" + *ip, apiToken(req))
 	rep := report.New(g, dashName(req), time(req))
 
-	file,err := rep.Generate()
+	file,err := rep.Generate(templateName(req))
 	if err != nil{
 		log.Println("Error generating report:", err)
 		http.Error(w, err.Error(), 500)
@@ -88,3 +88,11 @@ func apiToken(r *http.Request) string {
 	return apiToken
 }
 
+func templateName(r *http.Request) string {
+	template := r.URL.Query().Get("template")
+	if template == "" {
+		template = "default"
+	}
+	log.Println("Called with time template:", template)
+	return template
+}
