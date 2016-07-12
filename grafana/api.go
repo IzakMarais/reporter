@@ -28,8 +28,8 @@ import (
 )
 
 type Client interface {
-	GetDashboard(dashName string) Dashboard
-	GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
+	GetDashboard(dashName string) (Dashboard, error)
+	GetPanelPng(p Panel, dashName string, t TimeRange) (io.ReadCloser, error)
 }
 
 type client struct {
@@ -41,39 +41,31 @@ func NewClient(url string, apiToken string) Client {
 	return client{url, apiToken}
 }
 
-func (g client) GetDashboard(dashName string) Dashboard {
+func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 	dashURL := g.url + "/api/dashboards/db/" + dashName
 	log.Println("Connecting to dashboard at", dashURL)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", dashURL, nil)
-	if err != nil {
-		panic(err)
-	}
 
 	if g.apiToken != "" {
 		req.Header.Add("Authorization", "Bearer " + g.apiToken)
 	}
 	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
 
 	if resp.StatusCode != 200 {
-		log.Println(string(body))
-		panic("Error obtaining dashboard")
+		log.Println("Error obtaining dashboard: ", resp.Status)
+		err = errors.New("Error obtaining dashboard: " + string(body))
 	}
 
-	return NewDashboard(body)
+	dashboard = NewDashboard(body)
+	return
 }
 
-func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser {
+func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.ReadCloser, err error) {
 
 	v := url.Values{}
 	v.Add("theme", "light")
@@ -94,18 +86,18 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
 	log.Println("Downloading image ", p.Id, panelUrl)
 
 	client := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		return errors.New("Failed to login. Need API Token")
+		return errors.New("Error getting panel png. Redirected to login")
 	}}
 	req, err := http.NewRequest("GET", panelUrl, nil)
 	if err != nil {
-		panic(err)
+		return
 	}
 	if g.apiToken != "" {
 		req.Header.Add("Authorization", "Bearer " + g.apiToken)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	if resp.StatusCode != 200 {
@@ -114,8 +106,9 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
 			panic(err)
 		}
 		log.Println(string(body))
-		panic("Error obtaining render")
+		err = errors.New("Error obtaining render: " + resp.Status)
 	}
 
-	return resp.Body
+	body = resp.Body
+	return
 }

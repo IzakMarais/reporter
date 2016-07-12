@@ -50,12 +50,22 @@ func serveReport(w http.ResponseWriter, req *http.Request) {
 	g := grafana.NewClient("http://" + *ip, apiToken(req))
 	rep := report.New(g, dashName(req), time(req))
 
-	file := rep.Generate()
+	file,err := rep.Generate()
+	if err != nil{
+		log.Println("Error generating report:", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	defer rep.Clean()
 	defer file.Close()
 
-	_, err := io.Copy(w, file)
-	stopIf(err)
+	_, err = io.Copy(w, file)
+	if err != nil{
+		log.Println("Error copying data to response:", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	log.Println("Report generated correctly")
 }
 
 func dashName(r *http.Request) string {
@@ -78,8 +88,3 @@ func apiToken(r *http.Request) string {
 	return apiToken
 }
 
-func stopIf(err error) {
-	if err != nil {
-		panic(err)
-	}
-}

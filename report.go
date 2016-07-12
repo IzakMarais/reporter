@@ -51,11 +51,21 @@ func New(g grafana.Client, dashName string, time grafana.TimeRange) Report {
 
 // Generate returns the report.pdf file.  After reading this file it should be Closed()
 // After closing the file, call report.Clean() to delete the file as well the temporary build files
-func (this *Report) Generate() *os.File {
-	dash := this.gClient.GetDashboard(this.dashName)
-	this.renderPNGsParallel(dash)
-	this.generateTeXFile(dash)
-	return this.runLaTeX()
+func (this *Report) Generate() (latex_file *os.File, err error) {
+	dash,err := this.gClient.GetDashboard(this.dashName)
+	if err != nil {
+		return
+	}
+	err = this.renderPNGsParallel(dash)
+	if err != nil {
+		return
+	}
+	err = this.generateTeXFile(dash)
+	if err != nil {
+		return
+	}
+	latex_file,err = this.runLaTeX()
+	return
 }
 
 func (this *Report) Clean() {
@@ -77,69 +87,79 @@ func (this *Report) texPath() string {
 	return filepath.Join(this.tmpDir, reportTexFile)
 }
 
-func (this *Report) renderPNGsParallel(dash grafana.Dashboard) {
+func (this *Report) renderPNGsParallel(dash grafana.Dashboard) (err error){
 	var wg sync.WaitGroup
 	wg.Add(len(dash.Panels))
 
 	for _, p := range dash.Panels {
 		go func(p grafana.Panel) {
 			defer wg.Done()
-			this.renderPNG(p)
+			err = this.renderPNG(p)
+			if err != nil {
+				return
+			}
 		}(p)
 	}
 
 	wg.Wait()
+	return
 }
 
-func (this *Report) renderPNG(p grafana.Panel) {
-	body := this.gClient.GetPanelPng(p, this.dashName, this.time)
+func (this *Report) renderPNG(p grafana.Panel) (err error) {
+	body,err := this.gClient.GetPanelPng(p, this.dashName, this.time)
+	if err != nil {
+		return
+	}
 	defer body.Close()
 
-	err := os.MkdirAll(this.imgDirPath(), 0777)
-	stopIf(err)
+	err = os.MkdirAll(this.imgDirPath(), 0777)
+	if err != nil {
+		return
+	}
 	imgFileName := fmt.Sprintf("image%d.png", p.Id)
 	file, err := os.Create(filepath.Join(this.imgDirPath(), imgFileName))
-	stopIf(err)
+	if err != nil {
+		return
+	}
 	defer file.Close()
 
 	_, err = io.Copy(file, body)
-	stopIf(err)
+	return
 }
 
-func (this *Report) generateTeXFile(dash grafana.Dashboard) {
+func (this *Report) generateTeXFile(dash grafana.Dashboard) (err error) {
 	type templData struct {
 		grafana.Dashboard
 		grafana.TimeRange
 	}
 
-	err := os.MkdirAll(this.tmpDir, 0777)
-	stopIf(err)
+	err = os.MkdirAll(this.tmpDir, 0777)
+	if err != nil {
+		return
+	}
 	file, err := os.Create(this.texPath())
-	stopIf(err)
+	if err != nil {
+		return
+	}
 	defer file.Close()
 
 	tmpl := template.Must(
 		template.New("report").Delims("[[", "]]").Parse(texTemplate))
 	data := templData{dash, this.time}
 	err = tmpl.Execute(file, data)
-	stopIf(err)
+	return
 }
 
-func (this *Report) runLaTeX() *os.File {
+func (this *Report) runLaTeX() (latex_file *os.File, err error) {
 	cmd := exec.Command("pdflatex", "-halt-on-error", reportTexFile)
 	cmd.Dir = this.tmpDir
 	outBytes, err := cmd.CombinedOutput()
 	if err != nil {
-		stopIf(errors.New("Latex failed with output: " + string(outBytes)))
+		err = errors.New("Latex failed with output: " + string(outBytes))
+		return
 	}
 
-	file, err := os.Open(this.pdfPath())
-	stopIf(err)
-	return file
+	latex_file, err = os.Open(this.pdfPath())
+	return
 }
 
-func stopIf(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
