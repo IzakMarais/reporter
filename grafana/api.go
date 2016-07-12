@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"errors"
 )
 
 type Client interface {
@@ -33,17 +34,27 @@ type Client interface {
 
 type client struct {
 	url string
+	apiToken string
 }
 
-func NewClient(url string) Client {
-	return client{url}
+func NewClient(url string, apiToken string) Client {
+	return client{url, apiToken}
 }
 
 func (g client) GetDashboard(dashName string) Dashboard {
 	dashURL := g.url + "/api/dashboards/db/" + dashName
 	log.Println("Connecting to dashboard at", dashURL)
 
-	resp, err := http.Get(dashURL)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", dashURL, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	if g.apiToken != "" {
+		req.Header.Add("Authorization", "Bearer " + g.apiToken)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -53,6 +64,12 @@ func (g client) GetDashboard(dashName string) Dashboard {
 	if err != nil {
 		panic(err)
 	}
+
+	if resp.StatusCode != 200 {
+		log.Println(string(body))
+		panic("Error obtaining dashboard")
+	}
+
 	return NewDashboard(body)
 }
 
@@ -76,9 +93,29 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
 
 	log.Println("Downloading image ", p.Id, panelUrl)
 
-	resp, err := http.Get(panelUrl)
+	client := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return errors.New("Failed to login. Need API Token")
+	}}
+	req, err := http.NewRequest("GET", panelUrl, nil)
 	if err != nil {
 		panic(err)
 	}
+	if g.apiToken != "" {
+		req.Header.Add("Authorization", "Bearer " + g.apiToken)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode != 200 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		log.Println(string(body))
+		panic("Error obtaining render")
+	}
+
 	return resp.Body
 }
