@@ -52,7 +52,7 @@ func New(g grafana.Client, dashName string, time grafana.TimeRange) Report {
 
 // Generate returns the report.pdf file.  After reading this file it should be Closed()
 // After closing the file, call report.Clean() to delete the file as well the temporary build files
-func (this *Report) Generate(templateName string) (latex_file *os.File, err error) {
+func (this *Report) Generate(templateFile string) (latex_file *os.File, err error) {
 	dash,err := this.gClient.GetDashboard(this.dashName)
 	if err != nil {
 		return
@@ -61,7 +61,7 @@ func (this *Report) Generate(templateName string) (latex_file *os.File, err erro
 	if err != nil {
 		return
 	}
-	err = this.generateTeXFile(dash, templateName)
+	err = this.generateTeXFile(dash, templateFile)
 	if err != nil {
 		return
 	}
@@ -128,7 +128,7 @@ func (this *Report) renderPNG(p grafana.Panel) (err error) {
 	return
 }
 
-func (this *Report) generateTeXFile(dash grafana.Dashboard, templateName string) (err error) {
+func (this *Report) generateTeXFile(dash grafana.Dashboard, templateFile string) (err error) {
 	type templData struct {
 		grafana.Dashboard
 		grafana.TimeRange
@@ -145,7 +145,7 @@ func (this *Report) generateTeXFile(dash grafana.Dashboard, templateName string)
 	defer file.Close()
 
 
-	texTemplate,err := ioutil.ReadFile("templates/"+templateName+".tex")
+	texTemplate,err := ioutil.ReadFile(templateFile)
 	if err != nil {
 		err = errors.New("Error reading template: " + err.Error())
 		return

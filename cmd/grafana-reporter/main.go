@@ -26,10 +26,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/izakmarais/reporter"
 	"github.com/izakmarais/reporter/grafana"
+	"path/filepath"
 )
 
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
+var templateDir = flag.String("templates", "templates/", "Templates dir")
 
 func main() {
 	flag.Parse()
@@ -50,7 +52,7 @@ func serveReport(w http.ResponseWriter, req *http.Request) {
 	g := grafana.NewClient("http://" + *ip, apiToken(req))
 	rep := report.New(g, dashName(req), time(req))
 
-	file,err := rep.Generate(templateName(req))
+	file,err := rep.Generate(templateFile(req))
 	if err != nil{
 		log.Println("Error generating report:", err)
 		http.Error(w, err.Error(), 500)
@@ -88,11 +90,12 @@ func apiToken(r *http.Request) string {
 	return apiToken
 }
 
-func templateName(r *http.Request) string {
-	template := r.URL.Query().Get("template")
-	if template == "" {
-		template = "default"
+func templateFile(r *http.Request) string {
+	templateName := r.URL.Query().Get("template")
+	if templateName == "" {
+		templateName = "default"
 	}
-	log.Println("Called with time template:", template)
-	return template
+	templateFile := filepath.Join(*templateDir,templateName+".tex")
+	log.Println("Called with time template:", templateFile)
+	return templateFile
 }
