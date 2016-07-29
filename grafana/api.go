@@ -47,14 +47,23 @@ func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", dashURL, nil)
+	if err != nil {
+		return
+	}
 
 	if g.apiToken != "" {
 		req.Header.Add("Authorization", "Bearer " + g.apiToken)
 	}
 	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
 
 	if resp.StatusCode != 200 {
 		log.Println("Error obtaining dashboard: ", resp.Status)
