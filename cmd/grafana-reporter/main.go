@@ -28,6 +28,7 @@ import (
 	"github.com/izakmarais/reporter/grafana"
 )
 
+var proto = flag.String("proto", "http://", "Grafana Protocol")
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 
@@ -47,7 +48,8 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	g := grafana.NewClient("http://" + *ip)
+
+	g := grafana.NewClient(*proto + *ip)
 	rep := report.New(g, dashName(req), time(req))
 
 	file := rep.Generate()
