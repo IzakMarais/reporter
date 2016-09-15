@@ -26,10 +26,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/izakmarais/reporter"
 	"github.com/izakmarais/reporter/grafana"
+	"path/filepath"
 )
 
+var proto = flag.String("proto", "http://", "Grafana Protocol")
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
+var templateDir = flag.String("templates", "templates/", "Templates dir")
 
 func main() {
 	flag.Parse()
@@ -47,15 +50,27 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	g := grafana.NewClient("http://" + *ip)
+
+	g := grafana.NewClient(*proto + *ip, apiToken(req))
+
 	rep := report.New(g, dashName(req), time(req))
 
-	file := rep.Generate()
+	file,err := rep.Generate(templateFile(req))
+	if err != nil{
+		log.Println("Error generating report:", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	defer rep.Clean()
 	defer file.Close()
 
-	_, err := io.Copy(w, file)
-	stopIf(err)
+	_, err = io.Copy(w, file)
+	if err != nil{
+		log.Println("Error copying data to response:", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	log.Println("Report generated correctly")
 }
 
 func dashName(r *http.Request) string {
@@ -72,8 +87,18 @@ func time(r *http.Request) grafana.TimeRange {
 	return t
 }
 
-func stopIf(err error) {
-	if err != nil {
-		panic(err)
+func apiToken(r *http.Request) string {
+	apiToken := r.URL.Query().Get("apitoken")
+	log.Println("Called with time range:", apiToken)
+	return apiToken
+}
+
+func templateFile(r *http.Request) string {
+	templateName := r.URL.Query().Get("template")
+	if templateName == "" {
+		templateName = "default"
 	}
+	templateFile := filepath.Join(*templateDir,templateName+".tex")
+	log.Println("Called with time template:", templateFile)
+	return templateFile
 }
