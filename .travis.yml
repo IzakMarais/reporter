@@ -1,0 +1,28 @@
+language: go
+
+go:
+  - tip
+
+go_import_path: github.com/izakmarais/reporter
+
+before_deploy:
+  - go get github.com/gorilla/mux
+  - go get github.com/pborman/uuid
+  - go get github.com/mitchellh/gox
+  - cd cmd/grafana-reporter
+  - gox -output "_output/{{.OS}}/{{.Arch}}/{{.Dir}}" -os="linux"
+
+deploy:
+  provider: releases
+  api_key:
+    secure: rqzUplwTNGJLROmjWrC70ZA3ix/zo+fom8SMINYDftiuA2gCcAhU33WAGvSjyRqH6WCDAtrBcbRH1uFjSN9fO9NF2XXTc8zukTzUs7KX1f1uic/jz5/zvsGlCMcjgNNm7eKctCKHqOII9QZZl0p2HMbbO70pfwm/JtIoLB0/t/Jr3ePNIr00t/steXoTTdfeGkiwThgZJlSvwJ9m8yvh7DJvuAuEX2tQqvAPJJ3ASxc6ggXmNIKDyOMJtWkcps+t4E/byP3CGZWk5Uu0ZEOa8R0RiKSvUGA3b+B+Llx4PHs2cIgjtO9CHgDODqP3pAo9KdTBTlusvC/+57UePTbnFL0X8FmtFQj1rBxPMLMlYPswAEEYhSOWIIukb0x4AIAmJJMEcOdC1KYP6YzBlBPXC+oSGjFpYuyIfZf7Njl8WwkMxAvlMaTYNenPLFOnrc4+tD6MAYgIXUn4omklwn8GepMAcJ4l5CUoatP4D2CJrsxbltaZh2GSGHwYsUbD0y89XyefKDLwhvSrtVSW1fYzPeoNhAB06EdE2lRPxVec9vs4RzvS39zf6XxdtyhcGwaBUV5PrbFZ4D3sPkI1gGGtjLZxcI3PWMiukZy4ZdxYQjo3poDHJ4JbF+dHaISEvk7WZHjJwfDFWi7IvC4E0DxLUf0D/VzE9MuM6AVCeCWLcUc=
+  file: 
+   - "cmd/grafana-reporter/_output/linux/386/grafana-reporter"
+   - "cmd/grafana-reporter/_output/linux/amd64/grafana-reporter"
+   - "cmd/grafana-reporter/_output/linux/arm/grafana-reporter"
+   - "cmd/grafana-reporter/_output/linux/arm64/grafana-reporter"
+   - "cmd/grafana-reporter/_output/linux/ppc64/grafana-reporter"
+   - "cmd/grafana-reporter/_output/linux/ppc64le/grafana-reporter"
+  on:
+    tags: true
+    repo: GrantStreetGroup/reporter
