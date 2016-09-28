@@ -80,5 +80,9 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
 	if err != nil {
 		panic(err)
 	}
+	if resp.StatusCode >= 400 {
+		log.Println("Download error: ", p.Id, panelUrl, resp.StatusCode)
+		return nil
+	}
 	return resp.Body
 }
