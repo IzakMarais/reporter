@@ -93,6 +93,9 @@ func (this *Report) renderPNGsParallel(dash grafana.Dashboard) {
 
 func (this *Report) renderPNG(p grafana.Panel) {
 	body := this.gClient.GetPanelPng(p, this.dashName, this.time)
+	if body == nil {
+		return
+	}
 	defer body.Close()
 
 	err := os.MkdirAll(this.imgDirPath(), 0777)
