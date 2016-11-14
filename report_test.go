@@ -47,12 +47,12 @@ const dashJSON = `
 type mockGrafanaClient struct {
 }
 
-func (m mockGrafanaClient) GetDashboard(dashName string) grafana.Dashboard {
-	return grafana.NewDashboard([]byte(dashJSON))
+func (m mockGrafanaClient) GetDashboard(dashName string) (grafana.Dashboard, error) {
+	return grafana.NewDashboard([]byte(dashJSON)), nil
 }
 
-func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafana.TimeRange) io.ReadCloser {
-	return ioutil.NopCloser(bytes.NewBuffer([]byte("Not actually a png")))
+func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafana.TimeRange) (io.ReadCloser, error) {
+	return ioutil.NopCloser(bytes.NewBuffer([]byte("Not actually a png"))), nil
 }
 
 func TestReport(t *testing.T) {
@@ -62,7 +62,8 @@ func TestReport(t *testing.T) {
 		defer rep.Clean()
 
 		Convey("When rendering images", func() {
-			rep.renderPNGsParallel(gClient.GetDashboard(""))
+			dashboard,_ := gClient.GetDashboard("")
+			rep.renderPNGsParallel(dashboard)
 
 			Convey("It should create a temporary folder", func() {
 				_, err := os.Stat(rep.tmpDir)
@@ -84,7 +85,9 @@ func TestReport(t *testing.T) {
 		})
 
 		Convey("When genereting the Tex file", func() {
-			rep.generateTeXFile(gClient.GetDashboard(""))
+			dashboard,_ := gClient.GetDashboard("")
+			template_file := "templates/default.tex"
+			rep.generateTeXFile(dashboard, template_file)
 			f, err := os.Open(rep.texPath())
 			defer f.Close()
 

@@ -20,11 +20,13 @@ import (
 	"encoding/json"
 )
 
+// Panel represents a Grafana dashboard panel
 type Panel struct {
 	Id   int
 	Type string
 }
 
+// Dashboard represents a Grafana dashboard
 type Dashboard struct {
 	Title  string
 	Panels []Panel
@@ -42,6 +44,7 @@ type dashContainer struct {
 	}
 }
 
+// NewDashboard creates Dashboard from Grafana's internal JSON dashboard definition
 func NewDashboard(dashJSON []byte) Dashboard {
 	var dash dashContainer
 	err := json.Unmarshal(dashJSON, &dash)

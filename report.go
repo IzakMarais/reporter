@@ -17,7 +17,6 @@
 package report
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -32,10 +31,11 @@ import (
 )
 
 type Report struct {
-	gClient  grafana.Client
-	time     grafana.TimeRange
-	dashName string
-	tmpDir   string
+	gClient     grafana.Client
+	time        grafana.TimeRange
+	texTemplate string
+	dashName    string
+	tmpDir      string
 }
 
 const (
@@ -44,102 +44,130 @@ const (
 	reportPdf     = "report.pdf"
 )
 
-func New(g grafana.Client, dashName string, time grafana.TimeRange) Report {
+// New creates a new Report. If texTemplate is empty, a default tex template is used.
+func New(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string) Report {
+	if texTemplate == "" {
+		texTemplate = defaultTemplate
+	}
 	tmpDir := filepath.Join("tmp", uuid.New())
-	return Report{g, time, dashName, tmpDir}
+	return Report{g, time, texTemplate, dashName, tmpDir}
 }
 
 // Generate returns the report.pdf file.  After reading this file it should be Closed()
 // After closing the file, call report.Clean() to delete the file as well the temporary build files
-func (this *Report) Generate() *os.File {
-	dash := this.gClient.GetDashboard(this.dashName)
-	this.renderPNGsParallel(dash)
-	this.generateTeXFile(dash)
-	return this.runLaTeX()
+func (rep *Report) Generate() (pdf *os.File, err error) {
+	dash, err := rep.gClient.GetDashboard(rep.dashName)
+	if err != nil {
+		return
+	}
+	err = rep.renderPNGsParallel(dash)
+	if err != nil {
+		return
+	}
+	err = rep.generateTeXFile(dash)
+	if err != nil {
+		return
+	}
+	pdf, err = rep.runLaTeX()
+	return
 }
 
-func (this *Report) Clean() {
-	err := os.RemoveAll(this.tmpDir)
+// Clean deletes the temporary directory used during report generation
+func (rep *Report) Clean() {
+	err := os.RemoveAll(rep.tmpDir)
 	if err != nil {
 		log.Println("Error cleaning up tmp dir:", err)
 	}
 }
 
-func (this *Report) imgDirPath() string {
-	return filepath.Join(this.tmpDir, imgDir)
+func (rep *Report) imgDirPath() string {
+	return filepath.Join(rep.tmpDir, imgDir)
 }
 
-func (this *Report) pdfPath() string {
-	return filepath.Join(this.tmpDir, reportPdf)
+func (rep *Report) pdfPath() string {
+	return filepath.Join(rep.tmpDir, reportPdf)
 }
 
-func (this *Report) texPath() string {
-	return filepath.Join(this.tmpDir, reportTexFile)
+func (rep *Report) texPath() string {
+	return filepath.Join(rep.tmpDir, reportTexFile)
 }
 
-func (this *Report) renderPNGsParallel(dash grafana.Dashboard) {
+func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 	var wg sync.WaitGroup
 	wg.Add(len(dash.Panels))
 
 	for _, p := range dash.Panels {
 		go func(p grafana.Panel) {
 			defer wg.Done()
-			this.renderPNG(p)
+			err = rep.renderPNG(p)
+			if err != nil {
+				return
+			}
 		}(p)
 	}
 
 	wg.Wait()
+	return
 }
 
-func (this *Report) renderPNG(p grafana.Panel) {
-	body := this.gClient.GetPanelPng(p, this.dashName, this.time)
+func (rep *Report) renderPNG(p grafana.Panel) (err error) {
+	body, err := rep.gClient.GetPanelPng(p, rep.dashName, rep.time)
+	if err != nil {
+		return
+	}
 	defer body.Close()
 
-	err := os.MkdirAll(this.imgDirPath(), 0777)
-	stopIf(err)
+	err = os.MkdirAll(rep.imgDirPath(), 0777)
+	if err != nil {
+		return
+	}
 	imgFileName := fmt.Sprintf("image%d.png", p.Id)
-	file, err := os.Create(filepath.Join(this.imgDirPath(), imgFileName))
-	stopIf(err)
+	file, err := os.Create(filepath.Join(rep.imgDirPath(), imgFileName))
+	if err != nil {
+		return
+	}
 	defer file.Close()
 
 	_, err = io.Copy(file, body)
-	stopIf(err)
+	return
 }
 
-func (this *Report) generateTeXFile(dash grafana.Dashboard) {
+func (rep *Report) generateTeXFile(dash grafana.Dashboard) (err error) {
 	type templData struct {
 		grafana.Dashboard
 		grafana.TimeRange
 	}
 
-	err := os.MkdirAll(this.tmpDir, 0777)
-	stopIf(err)
-	file, err := os.Create(this.texPath())
-	stopIf(err)
+	err = os.MkdirAll(rep.tmpDir, 0777)
+	if err != nil {
+		return
+	}
+	file, err := os.Create(rep.texPath())
+	if err != nil {
+		return
+	}
 	defer file.Close()
 
-	tmpl := template.Must(
-		template.New("report").Delims("[[", "]]").Parse(texTemplate))
-	data := templData{dash, this.time}
+	tmpl, err := template.New("report").Delims("[[", "]]").Parse(rep.texTemplate)
+	if err != nil {
+		err = fmt.Errorf("Error parsing template '%s': %q", rep.texTemplate, err)
+		return
+	}
+	data := templData{dash, rep.time}
 	err = tmpl.Execute(file, data)
-	stopIf(err)
+	return
 }
 
-func (this *Report) runLaTeX() *os.File {
+func (rep *Report) runLaTeX() (pdf *os.File, err error) {
 	cmd := exec.Command("pdflatex", "-halt-on-error", reportTexFile)
-	cmd.Dir = this.tmpDir
+	cmd.Dir = rep.tmpDir
 	outBytes, err := cmd.CombinedOutput()
+	log.Println("Calling LaTeX")
 	if err != nil {
-		stopIf(errors.New("Latex failed with output: " + string(outBytes)))
+		err = fmt.Errorf("Error calling LaTeX: %q. Latex failed with output: %s ", err, string(outBytes))
+		return
 	}
 
-	file, err := os.Open(this.pdfPath())
-	stopIf(err)
-	return file
-}
-
-func stopIf(err error) {
-	if err != nil {
-		panic(err)
-	}
+	pdf, err = os.Open(rep.pdfPath())
+	return
 }

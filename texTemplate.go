@@ -16,7 +16,7 @@
 
 package report
 
-const texTemplate = `
+const defaultTemplate = `
 %use square brackets as golang text templating delimiters
 \documentclass{article}
 \usepackage{graphicx}

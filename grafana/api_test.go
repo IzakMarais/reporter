@@ -35,7 +35,8 @@ func TestGrafanaClient(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		grf := NewClient(ts.URL)
+		api_token := ""
+		grf := NewClient(ts.URL, api_token)
 		grf.GetDashboard("testDash")
 
 		Convey("It should use the dashboards endpoint", func() {
@@ -51,7 +52,8 @@ func TestGrafanaClient(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		grf := NewClient(ts.URL)
+		api_token := ""
+		grf := NewClient(ts.URL, api_token)
 
 		grf.GetPanelPng(Panel{44, "singlestat"}, "testDash", TimeRange{"now-1h", "now"})
 

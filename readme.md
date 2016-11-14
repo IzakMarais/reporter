@@ -35,13 +35,26 @@ Query available flags:
 
 ### Generate dashboard
 
+#### Endpoint
+
 The reporter serves a pdf report on the specified port at:
 
     /api/report/{dashBoardName}
 
-where _dashBoardName_ is the same name as used in the Grafana dasbhoard's URL. E.g. _backend-dashboard_ from _http://grafana-host:3000/dashboard/db/backend-dashboard_.
+where _dashBoardName_ is the same name as used in the Grafana dashboard's URL. 
+E.g. _backend-dashboard_ from _http://grafana-host:3000/dashboard/db/backend-dashboard_.
 
-In addition, the endpoint supports the same time query parameters as Grafana. This means that you can create a Grafana Link and enable the _Time range_ forwarding check-box. The link will render a dashboard with your current dashboard time range.
+#### Query parameters
+
+**Time span** : In addition, the endpoint supports the same time query parameters as Grafana. 
+This means that you can create a Grafana Link and enable the _Time range_ forwarding check-box.
+The link will render a dashboard with your current dashboard time range.
+
+**template**: Optionally specify a custom TeX template file.
+ _template=templateName_ implies a template file at `templates/templateName.tex`.
+ The `templates` directory can be set with a commandline parameter.   
+
+ **apitoken**: Optionally specify a Grafana authentication api token. Use this if you have auth enabled on Grafana.
 
 ### Test
 

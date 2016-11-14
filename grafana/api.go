@@ -17,6 +17,7 @@
 package grafana
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,38 +27,89 @@ import (
 	"strconv"
 )
 
+// Client is a Grafana API client
 type Client interface {
-	GetDashboard(dashName string) Dashboard
-	GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
+	GetDashboard(dashName string) (Dashboard, error)
+	GetPanelPng(p Panel, dashName string, t TimeRange) (io.ReadCloser, error)
 }
 
 type client struct {
-	url string
+	url      string
+	apiToken string
 }
 
-func NewClient(url string) Client {
-	return client{url}
+// NewClient creates a new Grafana Client. If apiToken is the empty string,
+// authorization headers will be omitted from requests.
+func NewClient(url string, apiToken string) Client {
+	return client{url, apiToken}
 }
 
-func (g client) GetDashboard(dashName string) Dashboard {
+func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 	dashURL := g.url + "/api/dashboards/db/" + dashName
 	log.Println("Connecting to dashboard at", dashURL)
 
-	resp, err := http.Get(dashURL)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", dashURL, nil)
 	if err != nil {
-		panic(err)
+		return
+	}
+
+	if g.apiToken != "" {
+		req.Header.Add("Authorization", "Bearer "+g.apiToken)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return
 	}
-	return NewDashboard(body)
+
+	if resp.StatusCode != 200 {
+		log.Println("Error obtaining dashboard: ", resp.Status)
+		err = errors.New("Error obtaining dashboard: " + string(body))
+		return
+	}
+
+	dashboard = NewDashboard(body)
+	return
 }
 
-func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser {
+func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.ReadCloser, err error) {
+	panelURL := g.getPanelURL(p, dashName, t)
 
+	client := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return errors.New("Error getting panel png. Redirected to login")
+	}}
+	req, err := http.NewRequest("GET", panelURL, nil)
+	if err != nil {
+		return
+	}
+	if g.apiToken != "" {
+		req.Header.Add("Authorization", "Bearer "+g.apiToken)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	if resp.StatusCode != 200 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		log.Println(string(body))
+		err = errors.New("Error obtaining render: " + resp.Status)
+	}
+
+	body = resp.Body
+	return
+}
+
+func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	v := url.Values{}
 	v.Add("theme", "light")
 	v.Add("panelId", strconv.Itoa(p.Id))
@@ -71,14 +123,7 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) io.ReadCloser
 		v.Add("height", "500")
 	}
 
-	panelUrl := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s",
-		g.url, dashName, v.Encode())
-
-	log.Println("Downloading image ", p.Id, panelUrl)
-
-	resp, err := http.Get(panelUrl)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Body
+	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", g.url, dashName, v.Encode())
+	log.Println("Downloading image ", p.Id, url)
+	return url
 }
