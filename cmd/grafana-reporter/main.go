@@ -30,6 +30,7 @@ import (
 	"github.com/izakmarais/reporter/grafana"
 )
 
+var proto = flag.String("proto", "http://", "Grafana Protocol")
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
@@ -50,7 +51,7 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	g := grafana.NewClient("http://"+*ip, apiToken(req))
+	g := grafana.NewClient(*proto+*ip, apiToken(req))
 	rep := report.New(g, dashName(req), time(req), texTemplate(req))
 
 	file, err := rep.Generate()
