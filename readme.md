@@ -1,4 +1,5 @@
-# Grafana reporter
+
+# Grafana reporter <img style="float: right;" src="https://travis-ci.org/IzakMarais/reporter.svg?branch=master">
 
 A simple http service that generates *.PDF reports from [Grafana](http://grafana.org/) dashboards.
 
