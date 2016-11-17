@@ -58,11 +58,11 @@ func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafa
 func TestReport(t *testing.T) {
 	Convey("When generating a report", t, func() {
 		var gClient mockGrafanaClient
-		rep := New(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"})
+		rep := New(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
 		defer rep.Clean()
 
 		Convey("When rendering images", func() {
-			dashboard,_ := gClient.GetDashboard("")
+			dashboard, _ := gClient.GetDashboard("")
 			rep.renderPNGsParallel(dashboard)
 
 			Convey("It should create a temporary folder", func() {
@@ -85,9 +85,8 @@ func TestReport(t *testing.T) {
 		})
 
 		Convey("When genereting the Tex file", func() {
-			dashboard,_ := gClient.GetDashboard("")
-			template_file := "templates/default.tex"
-			rep.generateTeXFile(dashboard, template_file)
+			dashboard, _ := gClient.GetDashboard("")
+			rep.generateTeXFile(dashboard)
 			f, err := os.Open(rep.texPath())
 			defer f.Close()
 
