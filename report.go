@@ -101,6 +101,7 @@ func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 			defer wg.Done()
 			err = rep.renderPNG(p)
 			if err != nil {
+				log.Printf("Error creating image for panel: %v", err)
 				return
 			}
 		}(p)
@@ -110,26 +111,29 @@ func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 	return
 }
 
-func (rep *Report) renderPNG(p grafana.Panel) (err error) {
+func (rep *Report) renderPNG(p grafana.Panel) error {
 	body, err := rep.gClient.GetPanelPng(p, rep.dashName, rep.time)
 	if err != nil {
-		return
+		return fmt.Errorf("error getting panel: %v", err)
 	}
 	defer body.Close()
 
 	err = os.MkdirAll(rep.imgDirPath(), 0777)
 	if err != nil {
-		return
+		return fmt.Errorf("error creating img directory:%v", err)
 	}
 	imgFileName := fmt.Sprintf("image%d.png", p.Id)
 	file, err := os.Create(filepath.Join(rep.imgDirPath(), imgFileName))
 	if err != nil {
-		return
+		return fmt.Errorf("error creating image file:%v", err)
 	}
 	defer file.Close()
 
 	_, err = io.Copy(file, body)
-	return
+	if err != nil {
+		return fmt.Errorf("error copying body to file:%v", err)
+	}
+	return nil
 }
 
 func (rep *Report) generateTeXFile(dash grafana.Dashboard) (err error) {
