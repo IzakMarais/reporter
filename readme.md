@@ -53,9 +53,12 @@ The link will render a dashboard with your current dashboard time range.
 
 **template**: Optionally specify a custom TeX template file.
  _template=templateName_ implies a template file at `templates/templateName.tex`.
- The `templates` directory can be set with a commandline parameter.   
+ The `templates` directory can be set with a commandline parameter.
+ Sample extended template (enhanced.tex) is provided that utilizes all the reporter features (might require additional LaTeX modules to work)   
 
  **apitoken**: Optionally specify a Grafana authentication api token. Use this if you have auth enabled on Grafana.
+
+ **variable**: Allows to pass single variable to Grafana, in standard format compatible with dashboard links (i.e: &var-VariableName=VariableValue)
 
 ### Test
 
