@@ -141,7 +141,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	// Request ends with " HTTP/1.1"
 	rfin := strings.Index(string(requestDump), " HTTP/1.1")
 
-	// Add the useful part of request to the URI to get the Panel, let the Panel grab what it needs
+	// Add the useful part of request to the URI down to the Panel, let the Panel grab what it needs
         url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s%s", g.url, dashName, v.Encode(), string(requestDump[rini:rfin]))
 	log.Println("Downloading image ", p.Id, url)
 	return url
