@@ -24,7 +24,11 @@ Get the source files and dependencies:
 
 Build and install:
 
-    go install -v github.com/izakmarais/reporter/cmd/grafana-reporter
+    make build
+
+Generate a docker image including `pdflatex` (warning: the TeXLive install can take a long time):
+
+    make docker-build
 
 Running without any flags assumes Grafana is reachable at _localhost:3000_:
 
