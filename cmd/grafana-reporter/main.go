@@ -51,7 +51,10 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
+	
+	// Push HTTP Request to grafana package.
 	grafana.GlobalReq = req
+	
 	g := grafana.NewClient(*proto+*ip, apiToken(req))
 	rep := report.New(g, dashName(req), time(req), texTemplate(req))
 
