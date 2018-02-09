@@ -9,7 +9,7 @@ docker-build:
 	@docker build -t grafana-reporter:0.6.2 .
 
 .PHONY: test
-test:
+test: $(TARGET)
 	@go test -v ./...
 
 $(GOPATH)/bin/dep:
