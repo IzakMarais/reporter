@@ -38,6 +38,17 @@ Query available flags:
 
     grafana-reporter --help
 
+#### Docker-Compose Example
+
+To run a simple local orchestration of Grafana and Grafana-Reporter:
+
+     go get github.com/izakmarais/reporter/ ...
+     cd $GOPATH/src/github.com/izakmarais/reporter
+     make compose-up
+
+Then open a browser to `http://localhost:3000` and create a new test dashboard. Add the example graph and save the dashboard as `test`.
+Next, open another browser window/tab and go to: `http://localhost:8080/api/report/test` which will output the grafana-reporter PDF.
+
 ### Generate dashboard
 
 #### Endpoint

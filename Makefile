@@ -18,3 +18,11 @@ $(GOPATH)/bin/dep:
 $(TARGET): $(GOPATH)/bin/dep
 	@cd $(SRC) && dep ensure
 	@cd $(SRC)/cmd/grafana-reporter && go install
+
+.PHONY: compose-up
+compose-up:
+	@docker-compose -f ./util/docker-compose.yml up 
+
+.PHONY: compose-down
+compose-down:
+	@docker-compose -f ./util/docker-compose.yml stop 
