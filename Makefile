@@ -1,5 +1,5 @@
 TARGET:=$(GOPATH)/bin/grafana-reporter
-SRC:=$(GOPATH)/src/github.com/izakmarais/reporter
+SRC:=$(GOPATH)/src/github.com/IzakMarais/reporter
 
 .PHONY: build
 build: $(TARGET)
