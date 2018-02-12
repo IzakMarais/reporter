@@ -133,6 +133,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	// Save a copy of this request for debugging.
 	if GlobalReq != nil {
 		// Convert to bytearray : GET /api/report/DashName? ... HTTP/1.1
+		log.Println("Managing HTTP Variables ")
 		requestDump, err := httputil.DumpRequest(GlobalReq, true)
 		if err != nil {
 	  		log.Println("Global Request - Error: ", err)
