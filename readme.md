@@ -20,11 +20,11 @@ Build requirements:
 
 Get the source files and dependencies:
 
-    go get github.com/izakmarais/reporter/...
+    go get github.com/IzakMarais/reporter/...
 
 Build and install:
 
-    go install -v github.com/izakmarais/reporter/cmd/grafana-reporter
+    go install -v github.com/IzakMarais/reporter/cmd/grafana-reporter
 
 Running without any flags assumes Grafana is reachable at _localhost:3000_:
 
@@ -62,8 +62,8 @@ The link will render a dashboard with your current dashboard time range.
 The unit tests can be run using the go tool:
 
     go get github.com/smartystreets/goconvey
-    go test -v github.com/izakmarais/reporter/...
+    go test -v github.com/IzakMarais/reporter/...
 
 or, the [GoConvey](http://goconvey.co/) webGUI:
 
-    ./bin/goconvey -workDir `pwd`/src/github.com/izakmarais -excludedDirs `pwd`/src/github.com/izakmarais/reporter/tmp/
+    ./bin/goconvey -workDir `pwd`/src/github.com/IzakMarais -excludedDirs `pwd`/src/github.com/IzakMarais/reporter/tmp/
