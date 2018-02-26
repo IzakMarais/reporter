@@ -1,5 +1,5 @@
 TARGET:=$(GOPATH)/bin/grafana-reporter
-SRC:=$(GOPATH)/src/github.com/izakmarais/reporter
+SRC:=$(GOPATH)/src/github.com/IzakMarais/reporter
 
 .PHONY: build
 build: $(TARGET)
@@ -21,8 +21,8 @@ $(TARGET): $(GOPATH)/bin/dep
 
 .PHONY: compose-up
 compose-up:
-	@docker-compose -f ./util/docker-compose.yml up
+	@docker-compose -f ./util/docker-compose.yml up 
 
 .PHONY: compose-down
 compose-down:
-	@docker-compose -f ./util/docker-compose.yml stop
+	@docker-compose -f ./util/docker-compose.yml stop 

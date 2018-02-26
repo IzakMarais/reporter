@@ -1,6 +1,6 @@
 # build
 FROM golang:1.8-stretch AS build
-WORKDIR /go/src/${owner:-github.com/izakmarais}/reporter
+WORKDIR /go/src/${owner:-github.com/IzakMarais}/reporter
 RUN apt-get update && apt-get install make git
 ADD . .
 RUN make build
