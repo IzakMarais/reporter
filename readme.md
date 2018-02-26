@@ -20,7 +20,7 @@ Build requirements:
 
 Get the source files and dependencies:
 
-    go get github.com/izakmarais/reporter/...
+    go get github.com/IzakMarais/reporter/...
 
 Build and install:
 
@@ -42,8 +42,8 @@ Query available flags:
 
 To run a simple local orchestration of Grafana and Grafana-Reporter:
 
-     go get github.com/izakmarais/reporter/ ...
-     cd $GOPATH/src/github.com/izakmarais/reporter
+     go get github.com/IzakMarais/reporter/ ...
+     cd $GOPATH/src/github.com/IzakMarais/reporter
      make compose-up
 
 Then open a browser to `http://localhost:3000` and create a new test dashboard. Add the example graph and save the dashboard as `test`.
@@ -77,8 +77,8 @@ The link will render a dashboard with your current dashboard time range.
 The unit tests can be run using the go tool:
 
     go get github.com/smartystreets/goconvey
-    go test -v github.com/izakmarais/reporter/...
+    go test -v github.com/IzakMarais/reporter/...
 
 or, the [GoConvey](http://goconvey.co/) webGUI:
 
-    ./bin/goconvey -workDir `pwd`/src/github.com/izakmarais -excludedDirs `pwd`/src/github.com/izakmarais/reporter/tmp/
+    ./bin/goconvey -workDir `pwd`/src/github.com/IzakMarais -excludedDirs `pwd`/src/github.com/IzakMarais/reporter/tmp/

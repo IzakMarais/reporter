@@ -26,8 +26,8 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
-	"github.com/izakmarais/reporter"
-	"github.com/izakmarais/reporter/grafana"
+	"github.com/IzakMarais/reporter"
+	"github.com/IzakMarais/reporter/grafana"
 )
 
 var proto = flag.String("proto", "http://", "Grafana Protocol")
