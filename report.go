@@ -94,9 +94,10 @@ func (rep *Report) texPath() string {
 
 func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 	var wg sync.WaitGroup
-	wg.Add(len(dash.Panels))
 
-	for _, p := range dash.Panels {
+	for _, r := range dash.Rows {
+	    for _, p := range r.Panels {
+		wg.Add(1)
 		go func(p grafana.Panel) {
 			defer wg.Done()
 			err = rep.renderPNG(p)
@@ -105,6 +106,7 @@ func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 				return
 			}
 		}(p)
+	    }
 	}
 
 	wg.Wait()
@@ -140,6 +142,7 @@ func (rep *Report) generateTeXFile(dash grafana.Dashboard) (err error) {
 	type templData struct {
 		grafana.Dashboard
 		grafana.TimeRange
+		grafana.Client
 	}
 
 	err = os.MkdirAll(rep.tmpDir, 0777)
@@ -157,16 +160,24 @@ func (rep *Report) generateTeXFile(dash grafana.Dashboard) (err error) {
 		err = fmt.Errorf("Error parsing template '%s': %q", rep.texTemplate, err)
 		return
 	}
-	data := templData{dash, rep.time}
+	data := templData{dash, rep.time, rep.gClient}
 	err = tmpl.Execute(file, data)
 	return
 }
 
 func (rep *Report) runLaTeX() (pdf *os.File, err error) {
+	cmdPre := exec.Command("pdflatex", "-halt-on-error", "-draftmode", reportTexFile)
+	cmdPre.Dir = rep.tmpDir
+	outBytesPre, errPre := cmdPre.CombinedOutput()
+	log.Println("Calling LaTeX - preprocessing")
+	if errPre != nil {
+		err = fmt.Errorf("Error calling LaTeX: %q. Latex preprocessing failed with output: %s ", errPre, string(outBytesPre))
+		return
+	}
 	cmd := exec.Command("pdflatex", "-halt-on-error", reportTexFile)
 	cmd.Dir = rep.tmpDir
 	outBytes, err := cmd.CombinedOutput()
-	log.Println("Calling LaTeX")
+	log.Println("Calling LaTeX and building PDF")
 	if err != nil {
 		err = fmt.Errorf("Error calling LaTeX: %q. Latex failed with output: %s ", err, string(outBytes))
 		return

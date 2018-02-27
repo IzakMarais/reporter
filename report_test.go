@@ -45,10 +45,13 @@ const dashJSON = `
 }`
 
 type mockGrafanaClient struct {
+        variable string
 }
 
 func (m mockGrafanaClient) GetDashboard(dashName string) (grafana.Dashboard, error) {
-	return grafana.NewDashboard([]byte(dashJSON)), nil
+	var gClient mockGrafanaClient
+	gClient.variable = "TestVar"
+	return grafana.NewDashboard([]byte(dashJSON), gClient.variable), nil
 }
 
 func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafana.TimeRange) (io.ReadCloser, error) {
@@ -58,6 +61,7 @@ func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafa
 func TestReport(t *testing.T) {
 	Convey("When generating a report", t, func() {
 		var gClient mockGrafanaClient
+		gClient.variable = "TestVar"
 		rep := New(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
 		defer rep.Clean()
 

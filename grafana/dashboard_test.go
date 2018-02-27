@@ -39,7 +39,7 @@ const dashJSON = `
 
 func TestDashboard(t *testing.T) {
 	Convey("When creating a new dashboard", t, func() {
-		dash := NewDashboard([]byte(dashJSON))
+		dash := NewDashboard([]byte(dashJSON), "TestVar")
 
 		Convey("Panel IsSingelStat should work for all panels", func() {
 			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)

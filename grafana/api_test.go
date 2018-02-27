@@ -36,7 +36,7 @@ func TestGrafanaClient(t *testing.T) {
 		defer ts.Close()
 
 		api_token := ""
-		grf := NewClient(ts.URL, api_token)
+		grf := NewClient(ts.URL, api_token, "TestVar")
 		grf.GetDashboard("testDash")
 
 		Convey("It should use the dashboards endpoint", func() {
@@ -53,9 +53,9 @@ func TestGrafanaClient(t *testing.T) {
 		defer ts.Close()
 
 		api_token := ""
-		grf := NewClient(ts.URL, api_token)
+		grf := NewClient(ts.URL, api_token, "TestVar")
 
-		grf.GetPanelPng(Panel{44, "singlestat"}, "testDash", TimeRange{"now-1h", "now"})
+		grf.GetPanelPng(Panel{44, "singlestat", "TestPanel1"}, "testDash", TimeRange{"now-1h", "now"})
 
 		Convey("It should use the render endpoint with the dashboard name", func() {
 			So(requestURI, ShouldStartWith, "/render/dashboard-solo/db/testDash")
@@ -76,7 +76,7 @@ func TestGrafanaClient(t *testing.T) {
 		})
 
 		Convey("Other panels request a larger size", func() {
-			grf.GetPanelPng(Panel{44, "graph"}, "testDash", TimeRange{"now", "now-1h"})
+			grf.GetPanelPng(Panel{44, "graph", "TestPanel2"}, "testDash", TimeRange{"now", "now-1h"})
 			So(requestURI, ShouldContainSubstring, "width=1000")
 			So(requestURI, ShouldContainSubstring, "height=500")
 		})
