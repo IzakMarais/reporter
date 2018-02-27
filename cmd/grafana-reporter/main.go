@@ -94,8 +94,10 @@ func apiToken(r *http.Request) string {
 }
 
 func dashVariable(r *http.Request) string {
-	if strings.Contains(r.URL.RequestURI(), "&var-") == true {
-		dashVariable := strings.Split(r.URL.RequestURI(), "&var-")[1]
+	        if strings.Contains(r.URL.RequestURI(), "var-") == true {
+// Since we do not know the variable name, we search using Split on known key : &var-
+                dashVariable := strings.Split(r.URL.RequestURI(), "var-")[1]
+                dashVariable  = strings.Split(dashVariable, "&")[0]
 		log.Println("Called with variable:", dashVariable)
 		return dashVariable
 	} else {
