@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/IzakMarais/reporter"
@@ -51,7 +52,7 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	g := grafana.NewClient(*proto+*ip, apiToken(req))
+	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariable(req))
 	rep := report.New(g, dashName(req), time(req), texTemplate(req))
 
 	file, err := rep.Generate()
@@ -90,6 +91,17 @@ func apiToken(r *http.Request) string {
 	apiToken := r.URL.Query().Get("apitoken")
 	log.Println("Called with api Token:", apiToken)
 	return apiToken
+}
+
+func dashVariable(r *http.Request) string {
+	if strings.Contains(r.URL.RequestURI(), "&var-") == true {
+		dashVariable := strings.Split(r.URL.RequestURI(), "&var-")[1]
+		log.Println("Called with variable:", dashVariable)
+		return dashVariable
+	} else {
+		log.Println("Called without variable")
+		return ""
+	}
 }
 
 func texTemplate(r *http.Request) string {

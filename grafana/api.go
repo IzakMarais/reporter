@@ -36,16 +36,20 @@ type Client interface {
 type client struct {
 	url      string
 	apiToken string
+	variable string
 }
 
 // NewClient creates a new Grafana Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
-func NewClient(url string, apiToken string) Client {
-	return client{url, apiToken}
+func NewClient(url string, apiToken string, variable string) Client {
+	return client{url, apiToken, variable}
 }
 
 func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 	dashURL := g.url + "/api/dashboards/db/" + dashName
+	if g.variable != "" {
+		dashURL = dashURL + "?var-" + g.variable
+	}
 	log.Println("Connecting to dashboard at", dashURL)
 
 	client := &http.Client{}
@@ -74,7 +78,7 @@ func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 		return
 	}
 
-	dashboard = NewDashboard(body)
+	dashboard = NewDashboard(body, g.variable)
 	return
 }
 
@@ -123,7 +127,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 		v.Add("height", "500")
 	}
 
-	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", g.url, dashName, v.Encode())
+	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?var-%s&%s", g.url, dashName, g.variable, v.Encode())
 	log.Println("Downloading image ", p.Id, url)
 	return url
 }
