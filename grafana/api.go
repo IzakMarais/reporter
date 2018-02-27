@@ -25,7 +25,12 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"net/http/httputil"
+	"strings"
 )
+
+// Global var to store the HTTP Request from Main
+var GlobalReq *http.Request
 
 // Client is a Grafana API client
 type Client interface {
@@ -110,6 +115,7 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.Read
 }
 
 func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
+	var httpvars string
 	v := url.Values{}
 	v.Add("theme", "light")
 	v.Add("panelId", strconv.Itoa(p.Id))
@@ -123,7 +129,28 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 		v.Add("height", "500")
 	}
 
-	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", g.url, dashName, v.Encode())
+	httpvars = ""
+	// Save a copy of this request for debugging.
+	if GlobalReq != nil {
+		// Convert to bytearray : GET /api/report/DashName? ... HTTP/1.1
+		log.Println("Managing HTTP Variables ")
+		requestDump, err := httputil.DumpRequest(GlobalReq, true)
+		if err != nil {
+	  		log.Println("Global Request - Error: ", err)
+		}
+		//log.Println(string(requestDump))
+	
+		// Grafana variables all have "var-" at the beginning 
+		rini := strings.Index(string(requestDump), "&var-")
+		// Request ends with " HTTP/1.1"
+		rfin := strings.Index(string(requestDump), " HTTP/1.1")
+
+		// Add the useful part of request to the URI down to the Panel, let the Panel grab what it needs
+		httpvars = string(requestDump[rini:rfin])
+//        	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s%s", g.url, dashName, v.Encode(), string(requestDump[rini:rfin]))
+	}
+	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s%s", g.url, dashName, v.Encode(), httpvars)
+
 	log.Println("Downloading image ", p.Id, url)
 	return url
 }
