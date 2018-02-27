@@ -1,0 +1,73 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage[depth=subsection]{bookmark}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+\fancyhead[LO,RE]{\textsf{[[.GetVariable]]}}
+
+\fancyfoot[LO]{\small Confidential to recipient}
+\fancyfoot[CO]{\small Company Name}
+\fancyfoot[RO]{\makebox[0pt][l]{\hspace{3em}\small{\thepage}}}%
+
+\setcounter{tocdepth}{4}
+
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\graphicspath{ {images/} }
+
+\begin{document}
+
+\begin{titlepage}
+\begin{flushright}
+%\includegraphics[width=50mm]{/path/to/logo.png}\\[6cm]  %Optional Logo
+\end{flushright}
+
+\center
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\textsf{\large [[.Description]]}\\[0.5cm]
+\HRule \\[0.4cm]
+{ \huge \bfseries [[.Title]]}\\[0.4cm]
+{ \huge \bfseries [[.GetVariable]]}\\[0.4cm]
+\HRule \\[1.5cm]
+
+\begin{flushleft}
+\large {\textbf{Report timeframe:} [[.FromFormatted]] to [[.ToFormatted]]}\\
+\large {\textbf{Report generation date:} \today}\\[2cm]
+\end{flushleft}
+
+\vfill
+
+\textsf{\LARGE Company Name}\\
+\textsf{\large Confidential to recipient; not for reproduction or redistribution}\\
+
+\end{titlepage}
+
+\tableofcontents
+
+\begin{center}
+
+[[range .Rows]]
+[[if .IsVisible]]
+\newpage
+\section{[[.Title]]}
+[[end]]
+[[range .Panels]][[if .IsSingleStat]]\begin{minipage}{0.3\textwidth}
+\includegraphics[width=\textwidth]{image[[.Id]]}
+\end{minipage}
+[[else]]\par
+\subsection{[[.Title]]}
+\vspace{0.5cm}
+\includegraphics[width=\textwidth]{image[[.Id]]}
+\par
+\vspace{0.5cm}[[end]][[end]]
+[[end]]
+
+\end{center}
+\end{document}
+

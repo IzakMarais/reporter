@@ -41,12 +41,13 @@ type Client interface {
 type client struct {
 	url      string
 	apiToken string
+	variable string
 }
 
 // NewClient creates a new Grafana Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
-func NewClient(url string, apiToken string) Client {
-	return client{url, apiToken}
+func NewClient(url string, apiToken string, variable string) Client {
+	return client{url, apiToken, variable}
 }
 
 func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
@@ -79,7 +80,7 @@ func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 		return
 	}
 
-	dashboard = NewDashboard(body)
+	dashboard = NewDashboard(body, g.variable)
 	return
 }
 
@@ -133,7 +134,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	// Save a copy of this request for debugging.
 	if GlobalReq != nil {
 		// Convert to bytearray : GET /api/report/DashName? ... HTTP/1.1
-		log.Println("Managing HTTP Variables ")
+//		log.Println("Managing HTTP Variables ")
 		requestDump, err := httputil.DumpRequest(GlobalReq, true)
 		if err != nil {
 	  		log.Println("Global Request - Error: ", err)
@@ -151,6 +152,6 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	}
 	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s%s", g.url, dashName, v.Encode(), httpvars)
 
-	log.Println("Downloading image ", p.Id, url)
+	log.Println("Downloading image ", p.Id, url[:90], "...")
 	return url
 }

@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/IzakMarais/reporter"
@@ -32,7 +33,9 @@ import (
 
 var proto = flag.String("proto", "http://", "Grafana Protocol")
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
-var port = flag.String("port", ":8686", "Port to serve on")
+//J var port = flag.String("port", ":8686", "Port to serve on")
+// WARNING ** Port changed for parallel debug. Restore original for production **
+var port = flag.String("port", ":8687", "Port to serve on") // DEBUG
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
 
 func main() {
@@ -55,7 +58,7 @@ func serveReport(w http.ResponseWriter, req *http.Request) {
 	// Push HTTP Request to grafana package.
 	grafana.GlobalReq = req
 	
-	g := grafana.NewClient(*proto+*ip, apiToken(req))
+	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariable(req))
 	rep := report.New(g, dashName(req), time(req), texTemplate(req))
 
 	file, err := rep.Generate()
@@ -94,6 +97,19 @@ func apiToken(r *http.Request) string {
 	apiToken := r.URL.Query().Get("apitoken")
 	log.Println("Called with api Token:", apiToken)
 	return apiToken
+}
+
+func dashVariable(r *http.Request) string {
+	if strings.Contains(r.URL.RequestURI(), "var-") == true {
+// Since we do not know the variable name, we search using Split on known key : &var-
+		dashVariable := strings.Split(r.URL.RequestURI(), "var-")[1]
+		dashVariable  = strings.Split(dashVariable, "&")[0]
+		log.Println("Called with variable:", dashVariable)
+		return dashVariable
+	} else {
+		log.Println("Called without variable")
+		return ""
+	}
 }
 
 func texTemplate(r *http.Request) string {
