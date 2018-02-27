@@ -61,7 +61,6 @@ The link will render a dashboard with your current dashboard time range.
 
 The unit tests can be run using the go tool:
 
-    go get github.com/smartystreets/goconvey
     go test -v github.com/IzakMarais/reporter/...
 
 or, the [GoConvey](http://goconvey.co/) webGUI:
