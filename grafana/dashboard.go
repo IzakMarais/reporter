@@ -115,6 +115,10 @@ func (d Dashboard) GetVariable() string {
 }
 
 func expandTitleVar(input string, r *http.Request) string {
+	if r == nil {
+		return input
+	}
+
 	q := r.URL.Query()
 //	log.Println("=======================")
 	for k, v := range q {
