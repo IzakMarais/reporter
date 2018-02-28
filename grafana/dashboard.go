@@ -73,15 +73,22 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 	dash.Description = sanitizeLaTexInput(dc.Dashboard.Description)
 	dash.VariableValues = sanitizeLaTexInput(getVariablesValues(variables))
 
+// Maybe some copy is not fully useful, but better be safe than sorry
+// Otherwise Panel Titles were not sanitized ...
 	for _, row := range dc.Dashboard.Rows {
-		row.Title = sanitizeLaTexInput(row.Title)
-		dash.Rows = append(dash.Rows, row)
+		lrow := row
+		lrow.Panels = nil
+		lrow.Title = sanitizeLaTexInput(lrow.Title)
 		for _, p := range row.Panels {
-			p.Title = sanitizeLaTexInput(row.Title)
-			dash.Panels = append(dash.Panels, p)
+			lp := p
+			lp.Title = sanitizeLaTexInput(lp.Title)
+			lrow.Panels = append(lrow.Panels, lp)
+// Why do we need to push Panels to Dashbord, if we have them into Rows ?
+// This will be useful with Grafana 5, which has Panes at top level and Rows as optional in Dash 
+			dash.Panels = append(dash.Panels, lp)
 		}
+		dash.Rows = append(dash.Rows, lrow)
 	}
-
 	return dash
 }
 
@@ -95,6 +102,34 @@ func (p Panel) IsSingleStat() bool {
 func (r Row) IsVisible() bool {
 	return r.Showtitle
 }
+
+/*
+func expandTitleVar(input string, variables url.Values) string {
+	if variables == nil {
+		return input
+	}
+
+//	log.Println("=======================")
+	for k, v := range variables {
+//		log.Printf("%s -> %s\n", k, v)
+		if strings.Contains(k, "var-") {
+			vname := strings.Split( k, "var-")[1]
+			vname1 := "$" + vname
+//			log.Println("VNAME: ", vname1)
+			if strings.Contains(input, vname1) {
+//				log.Println("Replacing:", input, vname1, "-->", v )
+				input = strings.Replace(input, vname1, strings.Join(v," "), -1 )
+//				log.Println("Replacing:", input )
+			}
+			vname2 := "[[" + vname + "]]"
+			if strings.Contains(input, vname2) {
+				input = strings.Replace(input, vname2, strings.Join(v," "), -1 )
+			}
+		}
+	}
+	return input
+}
+*/
 
 func getVariablesValues(variables url.Values) string {
 	values := []string{}
