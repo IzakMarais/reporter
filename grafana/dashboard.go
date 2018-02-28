@@ -85,7 +85,7 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 			lrow.Panels = append(lrow.Panels, lp)
 // Why do we need to push Panels to Dashbord, if we have them into Rows ?
 // This will be useful with Grafana 5, which has Panes at top level and Rows as optional in Dash 
-//			dash.Panels = append(dash.Panels, lp)
+			dash.Panels = append(dash.Panels, lp)
 		}
 		dash.Rows = append(dash.Rows, lrow)
 	}
