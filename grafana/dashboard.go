@@ -77,11 +77,14 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 // Maybe some copy is not fully useful, but better be safe than sorry
 // Otherwise Panel Titles were not sanitized ...
 	for _, row := range dc.Dashboard.Rows {
-		row.Title = sanitizeLaTexInput(row.Title)
-		dash.Rows = append(dash.Rows, row)
+		lrow := row
+		lrow.Panels = nil
+		lrow.Title = sanitizeLaTexInput(lrow.Title)
 		for _, p := range row.Panels {
-			p.Title = sanitizeLaTexInput(row.Title)
-			dash.Panels = append(dash.Panels, p)
+			lp := p
+			lp.Title = sanitizeLaTexInput(lp.Title)
+			lrow.Panels = append(lrow.Panels, lp)
+			dash.Panels = append(dash.Panels, lp)
 		}
 		dash.Rows = append(dash.Rows, lrow)
 	}
@@ -99,14 +102,13 @@ func (r Row) IsVisible() bool {
 	return r.Showtitle
 }
 
-func expandTitleVar(input string, r *http.Request) string {
-	if r == nil {
+func expandTitleVar(input string, variables url.Values) string {
+	if variables == nil {
 		return input
 	}
 
-	q := r.URL.Query()
 //	log.Println("=======================")
-	for k, v := range q {
+	for k, v := range variables {
 //		log.Printf("%s -> %s\n", k, v)
 		if strings.Contains(k, "var-") {
 			vname := strings.Split( k, "var-")[1]

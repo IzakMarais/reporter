@@ -25,8 +25,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"net/http/httputil"
-	"strings"
 )
 
 // Global var to store the HTTP Request from Main
