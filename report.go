@@ -182,7 +182,6 @@ func (rep *Report) runLaTeX() (pdf *os.File, err error) {
 		err = fmt.Errorf("Error calling LaTeX: %q. Latex failed with output: %s ", err, string(outBytes))
 		return
 	}
-
 	pdf, err = os.Open(rep.pdfPath())
 	return
 }

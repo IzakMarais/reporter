@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -35,8 +36,7 @@ func TestGrafanaClient(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		api_token := ""
-		grf := NewClient(ts.URL, api_token, "TestVar")
+		grf := NewClient(ts.URL, "", url.Values{})
 		grf.GetDashboard("testDash")
 
 		Convey("It should use the dashboards endpoint", func() {
@@ -46,16 +46,21 @@ func TestGrafanaClient(t *testing.T) {
 
 	Convey("When fetching a panel PNG", t, func() {
 		requestURI := ""
+		requestHeaders := http.Header{}
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			requestURI = r.RequestURI
+			requestHeaders = r.Header
 		}))
 		defer ts.Close()
 
-		api_token := ""
-		grf := NewClient(ts.URL, api_token, "TestVar")
+		apiToken := "1234"
+		variables := url.Values{}
+		variables.Add("var-host", "servername")
+		variables.Add("var-port", "adapter")
+		grf := NewClient(ts.URL, apiToken, variables)
 
-		grf.GetPanelPng(Panel{44, "singlestat", "TestPanel1"}, "testDash", TimeRange{"now-1h", "now"})
+		grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
 
 		Convey("It should use the render endpoint with the dashboard name", func() {
 			So(requestURI, ShouldStartWith, "/render/dashboard-solo/db/testDash")
@@ -75,8 +80,17 @@ func TestGrafanaClient(t *testing.T) {
 			So(requestURI, ShouldContainSubstring, "height=150")
 		})
 
+		Convey("apiToken should be in request header", func() {
+			So(requestHeaders.Get("Authorization"), ShouldContainSubstring, apiToken)
+		})
+
+		Convey("variables should be in the request parameters", func() {
+			So(requestURI, ShouldContainSubstring, "var-host=servername")
+			So(requestURI, ShouldContainSubstring, "var-port=adapter")
+		})
+
 		Convey("Other panels request a larger size", func() {
-			grf.GetPanelPng(Panel{44, "graph", "TestPanel2"}, "testDash", TimeRange{"now", "now-1h"})
+			grf.GetPanelPng(Panel{44, "graph", "title"}, "testDash", TimeRange{"now", "now-1h"})
 			So(requestURI, ShouldContainSubstring, "width=1000")
 			So(requestURI, ShouldContainSubstring, "height=500")
 		})

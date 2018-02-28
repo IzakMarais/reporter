@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"testing"
 
@@ -45,13 +46,11 @@ const dashJSON = `
 }`
 
 type mockGrafanaClient struct {
-        variable string
+	variables url.Values
 }
 
 func (m mockGrafanaClient) GetDashboard(dashName string) (grafana.Dashboard, error) {
-	var gClient mockGrafanaClient
-	gClient.variable = "TestVar"
-	return grafana.NewDashboard([]byte(dashJSON), gClient.variable), nil
+	return grafana.NewDashboard([]byte(dashJSON), m.variables), nil
 }
 
 func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafana.TimeRange) (io.ReadCloser, error) {
@@ -60,8 +59,9 @@ func (m mockGrafanaClient) GetPanelPng(p grafana.Panel, dashName string, t grafa
 
 func TestReport(t *testing.T) {
 	Convey("When generating a report", t, func() {
-		var gClient mockGrafanaClient
-		gClient.variable = "TestVar"
+		variables := url.Values{}
+		variables.Add("var-test", "testvarvalue")
+		gClient := mockGrafanaClient{variables}
 		rep := New(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
 		defer rep.Clean()
 
@@ -106,6 +106,10 @@ func TestReport(t *testing.T) {
 				So(err, ShouldBeNil)
 				Convey("Including the Title", func() {
 					So(s, ShouldContainSubstring, "My first dashboard")
+
+				})
+				Convey("Including the varialbe values", func() {
+					So(s, ShouldContainSubstring, "testvarvalue")
 
 				})
 				Convey("and the images", func() {

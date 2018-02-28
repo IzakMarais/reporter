@@ -22,20 +22,19 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/IzakMarais/reporter"
 	"github.com/IzakMarais/reporter/grafana"
+	"github.com/gorilla/mux"
 )
 
 var proto = flag.String("proto", "http://", "Grafana Protocol")
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
-//J var port = flag.String("port", ":8686", "Port to serve on")
-// WARNING ** Port changed for parallel debug. Restore original for production **
-var port = flag.String("port", ":8687", "Port to serve on") // DEBUG
+var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
 
 func main() {
@@ -54,11 +53,7 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	
-	// Push HTTP Request to grafana package.
-	grafana.GlobalReq = req
-	
-	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariable(req))
+	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariables(req))
 	rep := report.New(g, dashName(req), time(req), texTemplate(req))
 
 	file, err := rep.Generate()
@@ -99,17 +94,20 @@ func apiToken(r *http.Request) string {
 	return apiToken
 }
 
-func dashVariable(r *http.Request) string {
-	if strings.Contains(r.URL.RequestURI(), "var-") == true {
-// Since we do not know the variable name, we search using Split on known key : &var-
-		dashVariable := strings.Split(r.URL.RequestURI(), "var-")[1]
-		dashVariable  = strings.Split(dashVariable, "&")[0]
-		log.Println("Called with variable:", dashVariable)
-		return dashVariable
-	} else {
-		log.Println("Called without variable")
-		return ""
+func dashVariables(r *http.Request) url.Values {
+	output := url.Values{}
+	for k, v := range r.URL.Query() {
+		if strings.HasPrefix(k, "var-") {
+			log.Println("Called with variable:", k, v)
+			for _, singleV := range v {
+				output.Add(k, singleV)
+			}
+		}
 	}
+	if len(output) == 0 {
+		log.Println("Called without variable")
+	}
+	return output
 }
 
 func texTemplate(r *http.Request) string {

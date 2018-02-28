@@ -6,7 +6,7 @@ build: $(TARGET)
 
 .PHONY: docker-build
 docker-build:
-	@docker build -t grafana-reporter:0.6.2 .
+	@docker build -t grafana-reporter:1.0.0 .
 
 .PHONY: test
 test: $(TARGET)
@@ -21,8 +21,8 @@ $(TARGET): $(GOPATH)/bin/dep
 
 .PHONY: compose-up
 compose-up:
-	@docker-compose -f ./util/docker-compose.yml up 
+	@docker-compose -f ./util/docker-compose.yml up
 
 .PHONY: compose-down
 compose-down:
-	@docker-compose -f ./util/docker-compose.yml stop 
+	@docker-compose -f ./util/docker-compose.yml stop

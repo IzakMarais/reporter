@@ -36,16 +36,16 @@ Query available flags:
 
 #### Docker examples (optional)
 
-If you also have `Make`, `Docker` and `Docker-compose` installed, you can do the following.
-First change directory :
+If you also have `Make` and `Docker` installed, you can generate
+a docker image including grafana-reporter and `pdflatex`. First change directory :
 
     cd github.com/IzakMarais/reporter
 
-Generate a docker image including `pdflatex` (warning: the TeXLive install can take a long time):
+Next do (warning: the TeXLive install can take a long time):
 
     make docker-build
 
-To run a simple local orchestration of Grafana and Grafana-Reporter:
+If you also have `Docker-compose` installed, you can run a simple local orchestration of Grafana and Grafana-reporter:
 
      go get github.com/IzakMarais/reporter/ ...
      cd $GOPATH/src/github.com/IzakMarais/reporter
@@ -67,21 +67,29 @@ E.g. `backend-dashboard` from `http://grafana-host:3000/dashboard/db/backend-das
 
 #### Query parameters
 
-**Time span** : In addition, the endpoint supports the same time query parameters as Grafana.
+The endpoint supports the following optional query parameters. These can be combined using standard
+URL query parameter syntax, eg:
+
+    /api/report/{dashBoardName}?apitoken=12345&var-host=devbox
+
+**Time span** : The time span query parameter syntax is the same as used by Grafana.
 This means that you can create a Grafana Link and enable the _Time range_ forwarding check-box.
 The link will render a dashboard with your current dashboard time range.
 
+ **variables**: The template variable query parameter syntax is the same as used by Grafana,
+ e.g: `var-variableName=variableValue`. Multiple variables may be passed.
+
+ **apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. Syntax: `apitoken={your-tokenstring}`.
+
 **template**: Optionally specify a custom TeX template file.
- `template=templateName` implies a template file at `templates/templateName.tex`.
+ Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
  The `templates` directory can be set with a commandline parameter.
+ A example template (enhanced.tex) is provided that utilizes all the reporter features.
+ It shows how the dashboard description, row and graph titles and template variable values can be used in a report.
 
- **apitoken**: Optionally specify a Grafana authentication api token. Use this if you have auth enabled on Grafana. Example:
+## Development
 
-    /api/report/{dashBoardName}&apitoken={tokenstring}
-
-where `{dashBoardName}` and `{tokenstring}` should be substituted with your desired values.
-
-## Test
+### Test
 
 The unit tests can be run using the go tool:
 
@@ -90,3 +98,7 @@ The unit tests can be run using the go tool:
 or, the [GoConvey](http://goconvey.co/) webGUI:
 
     ./bin/goconvey -workDir `pwd`/src/github.com/IzakMarais -excludedDirs `pwd`/src/github.com/IzakMarais/reporter/tmp/
+
+### Release
+
+A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.

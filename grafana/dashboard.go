@@ -18,9 +18,8 @@ package grafana
 
 import (
 	"encoding/json"
+	"net/url"
 	"strings"
-	"net/http"
-//	"log"
 )
 
 // Panel represents a Grafana dashboard panel
@@ -40,11 +39,11 @@ type Row struct {
 
 // Dashboard represents a Grafana dashboard
 type Dashboard struct {
-	Title       string
-	Description string
-	Variable    string
-        Rows	    []Row
-        Panels      []Panel
+	Title          string
+	Description    string
+	VariableValues string
+	Rows           []Row
+	Panels         []Panel
 }
 
 type dashContainer struct {
@@ -59,37 +58,30 @@ type dashContainer struct {
 }
 
 // NewDashboard creates Dashboard from Grafana's internal JSON dashboard definition
-func NewDashboard(dashJSON []byte, variable string) Dashboard {
+func NewDashboard(dashJSON []byte, variables url.Values) Dashboard {
 	var dash dashContainer
 	err := json.Unmarshal(dashJSON, &dash)
 	if err != nil {
 		panic(err)
 	}
-	return dash.NewDashboard(variable)
+
+	return dash.NewDashboard(variables)
 }
 
-func (dc dashContainer) NewDashboard(variable string) Dashboard {
+func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 	var dash Dashboard
-	var lrow Row
-	var lpan Panel
-
 	dash.Title = sanitizeLaTexInput(dc.Dashboard.Title)
 	dash.Description = sanitizeLaTexInput(dc.Dashboard.Description)
-	dash.Variable = sanitizeLaTexInput(variable)
+	dash.VariableValues = sanitizeLaTexInput(getVariablesValues(variables))
 
 // Maybe some copy is not fully useful, but better be safe than sorry
 // Otherwise Panel Titles were not sanitized ...
 	for _, row := range dc.Dashboard.Rows {
-		lrow = row
-		lrow.Panels = nil
-		lrow.Title = expandTitleVar(lrow.Title, GlobalReq)
-		lrow.Title = sanitizeLaTexInput(lrow.Title)
+		row.Title = sanitizeLaTexInput(row.Title)
+		dash.Rows = append(dash.Rows, row)
 		for _, p := range row.Panels {
-			lpan = p
-			lpan.Title = expandTitleVar(lpan.Title, GlobalReq)
-			lpan.Title = sanitizeLaTexInput(lpan.Title)
-			lrow.Panels = append(lrow.Panels, lpan)
-			dash.Panels = append(dash.Panels, lpan)
+			p.Title = sanitizeLaTexInput(row.Title)
+			dash.Panels = append(dash.Panels, p)
 		}
 		dash.Rows = append(dash.Rows, lrow)
 	}
@@ -105,13 +97,6 @@ func (p Panel) IsSingleStat() bool {
 
 func (r Row) IsVisible() bool {
 	return r.Showtitle
-}
-
-func (d Dashboard) GetVariable() string {
-	if strings.Contains(d.Variable, "=") {
-		return strings.Split(d.Variable, "=")[1]
-	}
-	return "-"
 }
 
 func expandTitleVar(input string, r *http.Request) string {
@@ -141,19 +126,24 @@ func expandTitleVar(input string, r *http.Request) string {
 	return input
 }
 
+func getVariablesValues(variables url.Values) string {
+	values := []string{}
+	for _, v := range variables {
+		values = append(values, strings.Join(v, ", "))
+	}
+	return strings.Join(values, ", ")
+}
+
 func sanitizeLaTexInput(input string) string {
-//log.Println("sanitizeLaTexInput  IN ",input)
 	input = strings.Replace(input, "\\", "\\textbackslash ", -1)
 	input = strings.Replace(input, "&", "\\&", -1)
 	input = strings.Replace(input, "%", "\\%", -1)
-	input = strings.Replace(input, "$", "\\textdollar ", -1)
+	input = strings.Replace(input, "$", "\\$", -1)
 	input = strings.Replace(input, "#", "\\#", -1)
 	input = strings.Replace(input, "_", "\\_", -1)
 	input = strings.Replace(input, "{", "\\{", -1)
 	input = strings.Replace(input, "}", "\\}", -1)
 	input = strings.Replace(input, "~", "\\textasciitilde ", -1)
 	input = strings.Replace(input, "^", "\\textasciicircum ", -1)
-//log.Println("sanitizeLaTexInput OUT ",input)
 	return input
 }
-
