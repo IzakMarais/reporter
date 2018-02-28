@@ -64,7 +64,6 @@ func NewDashboard(dashJSON []byte, variables url.Values) Dashboard {
 	if err != nil {
 		panic(err)
 	}
-
 	return dash.NewDashboard(variables)
 }
 

@@ -27,9 +27,6 @@ import (
 	"strconv"
 )
 
-// Global var to store the HTTP Request from Main
-var GlobalReq *http.Request
-
 // Client is a Grafana API client
 type Client interface {
 	GetDashboard(dashName string) (Dashboard, error)
