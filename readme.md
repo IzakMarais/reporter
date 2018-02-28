@@ -87,7 +87,9 @@ The link will render a dashboard with your current dashboard time range.
  A example template (enhanced.tex) is provided that utilizes all the reporter features.
  It shows how the dashboard description, row and graph titles and template variable values can be used in a report.
 
-## Test
+## Development
+
+### Test
 
 The unit tests can be run using the go tool:
 
@@ -96,3 +98,7 @@ The unit tests can be run using the go tool:
 or, the [GoConvey](http://goconvey.co/) webGUI:
 
     ./bin/goconvey -workDir `pwd`/src/github.com/IzakMarais -excludedDirs `pwd`/src/github.com/IzakMarais/reporter/tmp/
+
+### Release
+
+A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.
