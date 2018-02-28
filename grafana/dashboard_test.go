@@ -17,6 +17,7 @@
 package grafana
 
 import (
+	"net/url"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -39,7 +40,7 @@ const dashJSON = `
 
 func TestDashboard(t *testing.T) {
 	Convey("When creating a new dashboard", t, func() {
-		dash := NewDashboard([]byte(dashJSON))
+		dash := NewDashboard([]byte(dashJSON), url.Values{})
 
 		Convey("Panel IsSingelStat should work for all panels", func() {
 			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)

@@ -1,3 +1,6 @@
+%Example template file. To see the source code for the standard template is at texTemplate.go
+
+
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage[margin=1in]{geometry}
@@ -6,8 +9,7 @@
 \usepackage{fancyhdr}
 
 \pagestyle{fancy}
-
-\fancyhead[LO,RE]{\textsf{[[.GetVariable]]}}
+\fancyhead[LO,RE]{\textsf{[[.VariableValues]]}}
 
 \fancyfoot[LO]{\small Confidential to recipient}
 \fancyfoot[CO]{\small Company Name}
@@ -33,7 +35,7 @@
 \textsf{\large [[.Description]]}\\[0.5cm]
 \HRule \\[0.4cm]
 { \huge \bfseries [[.Title]]}\\[0.4cm]
-{ \huge \bfseries [[.GetVariable]]}\\[0.4cm]
+{ \huge \bfseries [[.VariableValues]]}\\[0.4cm]
 \HRule \\[1.5cm]
 
 \begin{flushleft}

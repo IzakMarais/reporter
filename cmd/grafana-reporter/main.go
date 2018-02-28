@@ -22,13 +22,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/IzakMarais/reporter"
 	"github.com/IzakMarais/reporter/grafana"
+	"github.com/gorilla/mux"
 )
 
 var proto = flag.String("proto", "http://", "Grafana Protocol")
@@ -52,7 +53,7 @@ func main() {
 
 func serveReport(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
-	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariable(req))
+	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariables(req))
 	rep := report.New(g, dashName(req), time(req), texTemplate(req))
 
 	file, err := rep.Generate()
@@ -93,15 +94,20 @@ func apiToken(r *http.Request) string {
 	return apiToken
 }
 
-func dashVariable(r *http.Request) string {
-	if strings.Contains(r.URL.RequestURI(), "&var-") == true {
-		dashVariable := strings.Split(r.URL.RequestURI(), "&var-")[1]
-		log.Println("Called with variable:", dashVariable)
-		return dashVariable
-	} else {
-		log.Println("Called without variable")
-		return ""
+func dashVariables(r *http.Request) url.Values {
+	output := url.Values{}
+	for k, v := range r.URL.Query() {
+		if strings.HasPrefix(k, "var-") {
+			log.Println("Called with variable:", k, v)
+			for _, singleV := range v {
+				output.Add(k, singleV)
+			}
+		}
 	}
+	if len(output) == 0 {
+		log.Println("Called without variable")
+	}
+	return output
 }
 
 func texTemplate(r *http.Request) string {

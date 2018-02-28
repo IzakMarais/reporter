@@ -34,21 +34,22 @@ type Client interface {
 }
 
 type client struct {
-	url      string
-	apiToken string
-	variable string
+	url       string
+	apiToken  string
+	variables url.Values
 }
 
 // NewClient creates a new Grafana Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
-func NewClient(url string, apiToken string, variable string) Client {
-	return client{url, apiToken, variable}
+// variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
+func NewClient(url string, apiToken string, variables url.Values) Client {
+	return client{url, apiToken, variables}
 }
 
 func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 	dashURL := g.url + "/api/dashboards/db/" + dashName
-	if g.variable != "" {
-		dashURL = dashURL + "?var-" + g.variable
+	if len(g.variables) > 0 {
+		dashURL = dashURL + "?" + g.variables.Encode()
 	}
 	log.Println("Connecting to dashboard at", dashURL)
 
@@ -78,7 +79,7 @@ func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 		return
 	}
 
-	dashboard = NewDashboard(body, g.variable)
+	dashboard = NewDashboard(body, g.variables)
 	return
 }
 
@@ -114,20 +115,26 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.Read
 }
 
 func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
-	v := url.Values{}
-	v.Add("theme", "light")
-	v.Add("panelId", strconv.Itoa(p.Id))
-	v.Add("from", t.From)
-	v.Add("to", t.To)
+	values := url.Values{}
+	values.Add("theme", "light")
+	values.Add("panelId", strconv.Itoa(p.Id))
+	values.Add("from", t.From)
+	values.Add("to", t.To)
 	if p.IsSingleStat() {
-		v.Add("width", "300")
-		v.Add("height", "150")
+		values.Add("width", "300")
+		values.Add("height", "150")
 	} else {
-		v.Add("width", "1000")
-		v.Add("height", "500")
+		values.Add("width", "1000")
+		values.Add("height", "500")
 	}
 
-	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?var-%s&%s", g.url, dashName, g.variable, v.Encode())
+	for k, v := range g.variables {
+		for _, singleValue := range v {
+			values.Add(k, singleValue)
+		}
+	}
+
+	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", g.url, dashName, values.Encode())
 	log.Println("Downloading image ", p.Id, url)
 	return url
 }

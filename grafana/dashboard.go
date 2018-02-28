@@ -18,6 +18,7 @@ package grafana
 
 import (
 	"encoding/json"
+	"net/url"
 	"strings"
 )
 
@@ -38,11 +39,11 @@ type Row struct {
 
 // Dashboard represents a Grafana dashboard
 type Dashboard struct {
-	Title       string
-	Description string
-	Variable    string
-	Rows        []Row
-	Panels      []Panel
+	Title          string
+	Description    string
+	VariableValues string
+	Rows           []Row
+	Panels         []Panel
 }
 
 type dashContainer struct {
@@ -57,20 +58,20 @@ type dashContainer struct {
 }
 
 // NewDashboard creates Dashboard from Grafana's internal JSON dashboard definition
-func NewDashboard(dashJSON []byte, variable string) Dashboard {
+func NewDashboard(dashJSON []byte, variables url.Values) Dashboard {
 	var dash dashContainer
 	err := json.Unmarshal(dashJSON, &dash)
 	if err != nil {
 		panic(err)
 	}
-	return dash.NewDashboard(variable)
+	return dash.NewDashboard(variables)
 }
 
-func (dc dashContainer) NewDashboard(variable string) Dashboard {
+func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 	var dash Dashboard
 	dash.Title = sanitizeLaTexInput(dc.Dashboard.Title)
 	dash.Description = sanitizeLaTexInput(dc.Dashboard.Description)
-	dash.Variable = sanitizeLaTexInput(variable)
+	dash.VariableValues = sanitizeLaTexInput(getVariablesValues(variables))
 
 	for _, row := range dc.Dashboard.Rows {
 		row.Title = sanitizeLaTexInput(row.Title)
@@ -95,11 +96,12 @@ func (r Row) IsVisible() bool {
 	return r.Showtitle
 }
 
-func (d Dashboard) GetVariable() string {
-	if strings.Contains(d.Variable, "=") {
-		return strings.Split(d.Variable, "=")[1]
+func getVariablesValues(variables url.Values) string {
+	values := []string{}
+	for _, v := range variables {
+		values = append(values, strings.Join(v, ", "))
 	}
-	return "-"
+	return strings.Join(values, ", ")
 }
 
 func sanitizeLaTexInput(input string) string {
