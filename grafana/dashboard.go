@@ -103,6 +103,7 @@ func (r Row) IsVisible() bool {
 	return r.Showtitle
 }
 
+/*
 func expandTitleVar(input string, variables url.Values) string {
 	if variables == nil {
 		return input
@@ -128,6 +129,7 @@ func expandTitleVar(input string, variables url.Values) string {
 	}
 	return input
 }
+*/
 
 func getVariablesValues(variables url.Values) string {
 	values := []string{}
