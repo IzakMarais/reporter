@@ -22,12 +22,12 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGrafanaClient(t *testing.T) {
-
+func TestGrafanaClientFetchesDashboard(t *testing.T) {
 	Convey("When fetching a Dashboard", t, func() {
 		requestURI := ""
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,9 @@ func TestGrafanaClient(t *testing.T) {
 			So(requestURI, ShouldEqual, "/api/dashboards/db/testDash")
 		})
 	})
+}
 
+func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 	Convey("When fetching a panel PNG", t, func() {
 		requestURI := ""
 		requestHeaders := http.Header{}
@@ -96,5 +98,46 @@ func TestGrafanaClient(t *testing.T) {
 		})
 
 	})
+}
 
+func init() {
+	getPanelRetrySleepTime = time.Duration(1) * time.Millisecond //we want our tests to run fast
+}
+
+func TestGrafanaClientFetchPanelPNGErrorHandling(t *testing.T) {
+	Convey("When trying to fetching a panel from the server sometimes returns an error", t, func() {
+		try := 0
+
+		//create a server that will return error on the first call
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if try < 1 {
+				w.WriteHeader(http.StatusInternalServerError)
+				try++
+			}
+		}))
+		defer ts.Close()
+
+		grf := NewClient(ts.URL, "", url.Values{})
+
+		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
+
+		Convey("It should retry a couple of times if it receives errors", func() {
+			So(err, ShouldBeNil)
+		})
+	})
+
+	Convey("When trying to fetching a panel from the server consistently returns an error", t, func() {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		grf := NewClient(ts.URL, "", url.Values{})
+
+		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
+
+		Convey("The Grafana API should return an error", func() {
+			So(err, ShouldNotBeNil)
+		})
+	})
 }
