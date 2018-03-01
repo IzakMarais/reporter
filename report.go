@@ -92,10 +92,11 @@ func (rep *Report) texPath() string {
 	return filepath.Join(rep.tmpDir, reportTexFile)
 }
 
-func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
+func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) error {
 	var wg sync.WaitGroup
 	wg.Add(len(dash.Panels))
 
+	var err error
 	for _, p := range dash.Panels {
 		go func(p grafana.Panel) {
 			defer wg.Done()
@@ -108,7 +109,7 @@ func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 	}
 
 	wg.Wait()
-	return
+	return err
 }
 
 func (rep *Report) renderPNG(p grafana.Panel) error {

@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // Client is a Grafana API client
@@ -39,6 +40,8 @@ type client struct {
 	variables url.Values
 }
 
+var getPanelRetrySleepTime = time.Duration(10) * time.Second
+
 // NewClient creates a new Grafana Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
 // variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
@@ -46,7 +49,7 @@ func NewClient(url string, apiToken string, variables url.Values) Client {
 	return client{url, apiToken, variables}
 }
 
-func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
+func (g client) GetDashboard(dashName string) (Dashboard, error) {
 	dashURL := g.url + "/api/dashboards/db/" + dashName
 	if len(g.variables) > 0 {
 		dashURL = dashURL + "?" + g.variables.Encode()
@@ -56,7 +59,7 @@ func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", dashURL, nil)
 	if err != nil {
-		return
+		return Dashboard{}, err
 	}
 
 	if g.apiToken != "" {
@@ -64,26 +67,25 @@ func (g client) GetDashboard(dashName string) (dashboard Dashboard, err error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return
+		return Dashboard{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return
+		return Dashboard{}, nil
 	}
 
 	if resp.StatusCode != 200 {
 		log.Println("Error obtaining dashboard: ", resp.Status)
 		err = errors.New("Error obtaining dashboard: " + string(body))
-		return
+		return Dashboard{}, nil
 	}
 
-	dashboard = NewDashboard(body, g.variables)
-	return
+	return NewDashboard(body, g.variables), nil
 }
 
-func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.ReadCloser, err error) {
+func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (io.ReadCloser, error) {
 	panelURL := g.getPanelURL(p, dashName, t)
 
 	client := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -91,14 +93,24 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.Read
 	}}
 	req, err := http.NewRequest("GET", panelURL, nil)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if g.apiToken != "" {
 		req.Header.Add("Authorization", "Bearer "+g.apiToken)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return
+		return nil, err
+	}
+
+	for retries := 1; retries < 3 && resp.StatusCode != 200; retries++ {
+		delay := getPanelRetrySleepTime * time.Duration(retries)
+		log.Printf("Error  obtaining render for panel %v: %v. Retrying after %v...", p, resp.StatusCode, delay)
+		time.Sleep(delay)
+		resp, err = client.Do(req)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if resp.StatusCode != 200 {
@@ -106,12 +118,11 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (body io.Read
 		if err != nil {
 			panic(err)
 		}
-		log.Println(string(body))
-		err = errors.New("Error obtaining render: " + resp.Status)
+		log.Println("Error obtaining render:", string(body))
+		return nil, errors.New("Error obtaining render: " + resp.Status)
 	}
 
-	body = resp.Body
-	return
+	return resp.Body, nil
 }
 
 func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
