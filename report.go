@@ -94,10 +94,9 @@ func (rep *Report) texPath() string {
 
 func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 	var wg sync.WaitGroup
+	wg.Add(len(dash.Panels))
 
-	for _, r := range dash.Rows {
-	    for _, p := range r.Panels {
-		wg.Add(1)
+	for _, r := range dash.Panels {
 		go func(p grafana.Panel) {
 			defer wg.Done()
 			err = rep.renderPNG(p)
@@ -106,7 +105,6 @@ func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 				return
 			}
 		}(p)
-	    }
 	}
 
 	wg.Wait()
