@@ -96,7 +96,7 @@ func (rep *Report) renderPNGsParallel(dash grafana.Dashboard) (err error) {
 	var wg sync.WaitGroup
 	wg.Add(len(dash.Panels))
 
-	for _, r := range dash.Panels {
+	for _, p := range dash.Panels {
 		go func(p grafana.Panel) {
 			defer wg.Done()
 			err = rep.renderPNG(p)
