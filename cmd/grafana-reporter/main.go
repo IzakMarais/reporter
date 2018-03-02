@@ -18,17 +18,12 @@ package main
 
 import (
 	"flag"
-	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"path/filepath"
-	"strings"
 
-	"github.com/IzakMarais/reporter"
 	"github.com/IzakMarais/reporter/grafana"
+	"github.com/IzakMarais/reporter/report"
 	"github.com/gorilla/mux"
 )
 
@@ -46,83 +41,7 @@ func main() {
 	log.Printf("serving at '%s' and using grafana at '%s'", *port, *ip)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/api/report/{dashName}", serveReport)
+	RegisterHandlers(router, ServeReportHandler{grafana.NewClient, report.New})
 
 	log.Fatal(http.ListenAndServe(*port, router))
-}
-
-func serveReport(w http.ResponseWriter, req *http.Request) {
-	log.Print("Reporter called")
-	g := grafana.NewClient(*proto+*ip, apiToken(req), dashVariables(req))
-	rep := report.New(g, dashName(req), time(req), texTemplate(req))
-
-	file, err := rep.Generate()
-	if err != nil {
-		log.Println("Error generating report:", err)
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	defer rep.Clean()
-	defer file.Close()
-
-	_, err = io.Copy(w, file)
-	if err != nil {
-		log.Println("Error copying data to response:", err)
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	log.Println("Report generated correctly")
-}
-
-func dashName(r *http.Request) string {
-	vars := mux.Vars(r)
-	d := vars["dashName"]
-	log.Println("Called with dashboard:", d)
-	return d
-}
-
-func time(r *http.Request) grafana.TimeRange {
-	params := r.URL.Query()
-	t := grafana.NewTimeRange(params.Get("from"), params.Get("to"))
-	log.Println("Called with time range:", t)
-	return t
-}
-
-func apiToken(r *http.Request) string {
-	apiToken := r.URL.Query().Get("apitoken")
-	log.Println("Called with api Token:", apiToken)
-	return apiToken
-}
-
-func dashVariables(r *http.Request) url.Values {
-	output := url.Values{}
-	for k, v := range r.URL.Query() {
-		if strings.HasPrefix(k, "var-") {
-			log.Println("Called with variable:", k, v)
-			for _, singleV := range v {
-				output.Add(k, singleV)
-			}
-		}
-	}
-	if len(output) == 0 {
-		log.Println("Called without variable")
-	}
-	return output
-}
-
-func texTemplate(r *http.Request) string {
-	fName := r.URL.Query().Get("template")
-	if fName == "" {
-		return ""
-	}
-	file := filepath.Join(*templateDir, fName+".tex")
-	log.Println("Called with template:", file)
-
-	customTemplate, err := ioutil.ReadFile(file)
-	if err != nil {
-		log.Printf("Error reading template file: %q", err)
-		return ""
-	}
-
-	return string(customTemplate)
 }
