@@ -3,7 +3,7 @@
 
 A simple http service that generates *.PDF reports from [Grafana](http://grafana.org/) dashboards.
 
-![demo](demo/report.gif)
+![demo](demo/report_v5.gif)
 
 ## Requirements
 
@@ -84,19 +84,20 @@ URL query parameter syntax, eg:
 
     /api/v5/report/{dashboardUID}?apitoken=12345&var-host=devbox
 
-**Time span** : The time span query parameter syntax is the same as used by Grafana.
-This means that you can create a Grafana Link and enable the _Time range_ forwarding check-box.
-The link will render a dashboard with your current dashboard time range.
+**Time span**: The time span query parameter syntax is the same as used by Grafana.
+When you create a link from Grafana, you can enable the _Time range_ forwarding check-box.
+The link will render a dashboard with your current time range.
 
- **variables**: The template variable query parameter syntax is the same as used by Grafana,
- e.g: `var-variableName=variableValue`. Multiple variables may be passed.
+**variables**: The template variable query parameter syntax is the same as used by Grafana.
+When you create a link from Grafana, you can enable the _Variable values_ forwarding check-box.
+The link will render a dashboard with your current variable values.
 
- **apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. Syntax: `apitoken={your-tokenstring}`.
+**apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. Syntax: `apitoken={your-tokenstring}`.
 
 **template**: Optionally specify a custom TeX template file.
- Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
- The `templates` directory can be set with a commandline parameter.
- See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
+Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
+The `templates` directory can be set with a commandline parameter.
+See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
 
 ## Development
 
