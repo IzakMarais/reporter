@@ -38,21 +38,19 @@ type Row struct {
 }
 
 // Dashboard represents a Grafana dashboard
+// This is both used to unmarshal the dashbaord JSON into
+// and then enriched (sanitize fields for TeX consumption and add VarialbeValues)
 type Dashboard struct {
 	Title          string
 	Description    string
-	VariableValues string
+	VariableValues string //Not present in the Grafana JSON structure. Enriched data passed used by the Tex templating
 	Rows           []Row
 	Panels         []Panel
 }
 
 type dashContainer struct {
-	Dashboard struct {
-		Title       string
-		Description string
-		Rows        []Row
-	}
-	Meta struct {
+	Dashboard Dashboard
+	Meta      struct {
 		Slug string
 	}
 }
@@ -73,6 +71,13 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 	dash.Description = sanitizeLaTexInput(dc.Dashboard.Description)
 	dash.VariableValues = sanitizeLaTexInput(getVariablesValues(variables))
 
+	if len(dc.Dashboard.Rows) == 0 {
+		return populatePanelsFromV5JSON(dash, dc)
+	}
+	return populatePanelsFromV4JSON(dash, dc)
+}
+
+func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 	for _, row := range dc.Dashboard.Rows {
 		row.Title = sanitizeLaTexInput(row.Title)
 		dash.Rows = append(dash.Rows, row)
@@ -82,6 +87,14 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 		}
 	}
 
+	return dash
+}
+
+func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
+	for _, p := range dc.Dashboard.Panels {
+		p.Title = sanitizeLaTexInput(p.Title)
+		dash.Panels = append(dash.Panels, p)
+	}
 	return dash
 }
 

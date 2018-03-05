@@ -23,7 +23,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const dashJSON = `
+const v4DashJSON = `
 {"Dashboard":
 	{"Rows":
 		[{"Panels":
@@ -38,9 +38,20 @@ const dashJSON = `
 	{"Slug":"testDash"}
 }`
 
-func TestDashboard(t *testing.T) {
-	Convey("When creating a new dashboard", t, func() {
-		dash := NewDashboard([]byte(dashJSON), url.Values{})
+const v5DashJSON = `
+{"Dashboard":
+	{"Panels":
+		[{"Type":"singlestat", "Id":1},
+		 {"Type":"graph", "Id":2},
+		 {"Type":"singlestat", "Id":3}]
+	},
+"Meta":
+	{"Slug":"testDash"}
+}`
+
+func TestV4Dashboard(t *testing.T) {
+	Convey("When creating a new dashboard from Grafana v4 dashboard JSON", t, func() {
+		dash := NewDashboard([]byte(v4DashJSON), url.Values{})
 
 		Convey("Panel IsSingelStat should work for all panels", func() {
 			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)
@@ -48,9 +59,24 @@ func TestDashboard(t *testing.T) {
 			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
 		})
 
-		Convey("AllPanels() should get panels across all rows", func() {
+		Convey("Panels should contain all panels from all rows", func() {
 			So(dash.Panels, ShouldHaveLength, 3)
 		})
+	})
+}
 
+func TestV5Dashboard(t *testing.T) {
+	Convey("When creating a new dashboard from Grafana v5 dashboard JSON", t, func() {
+		dash := NewDashboard([]byte(v5DashJSON), url.Values{})
+
+		Convey("Panel IsSingelStat should work for all panels", func() {
+			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)
+			So(dash.Panels[1].IsSingleStat(), ShouldBeFalse)
+			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
+		})
+
+		Convey("Panels should contain all panels from all rows", func() {
+			So(dash.Panels, ShouldHaveLength, 3)
+		})
 	})
 }
