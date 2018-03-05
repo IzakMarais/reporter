@@ -96,8 +96,7 @@ The link will render a dashboard with your current dashboard time range.
 **template**: Optionally specify a custom TeX template file.
  Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
  The `templates` directory can be set with a commandline parameter.
- A example template (enhanced.tex) is provided that utilizes all the reporter features.
- It shows how the dashboard description, row and graph titles and template variable values can be used in a report.
+ See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
 
 ## Development
 
