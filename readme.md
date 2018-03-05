@@ -34,26 +34,6 @@ Query available flags:
 
     grafana-reporter --help
 
-#### Docker examples (optional)
-
-If you also have `Make` and `Docker` installed, you can generate
-a docker image including grafana-reporter and `pdflatex`. First change directory :
-
-    cd github.com/IzakMarais/reporter
-
-Next do (warning: the TeXLive install can take a long time):
-
-    make docker-build
-
-If you also have `Docker-compose` installed, you can run a simple local orchestration of Grafana and Grafana-reporter:
-
-     go get github.com/IzakMarais/reporter/ ...
-     cd $GOPATH/src/github.com/IzakMarais/reporter
-     make compose-up
-
-Then open a browser to `http://localhost:3000` and create a new test dashboard. Add the example graph and save the dashboard as `test`.
-Next, open another browser window/tab and go to: `http://localhost:8080/api/report/test` which will output the grafana-reporter PDF.
-
 ### Generate a dashboard report
 
 #### Endpoint
@@ -98,6 +78,27 @@ The link will render a dashboard with your current variable values.
 Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
 The `templates` directory can be set with a commandline parameter.
 See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
+
+### Docker examples (optional)
+
+If you also have `Make` and `Docker` installed, you can generate
+a docker image including grafana-reporter and `pdflatex`. First change directory :
+
+    cd github.com/IzakMarais/reporter
+
+Next do (warning: the TeXLive install can take a long time):
+
+    make docker-build
+
+If you also have `Docker-compose` installed, you can run a simple local orchestration of Grafana and Grafana-reporter:
+
+     go get github.com/IzakMarais/reporter/ ...
+     cd $GOPATH/src/github.com/IzakMarais/reporter
+     make compose-up
+
+Then open a browser to `http://localhost:3000` and create a new test dashboard. Add the example graph and save the dashboard.
+Observe the new URL and find the dashboard UID, e.g. `qaJCuCezz` from  `http://localhost:3000/d/qaJCuCezz/new-dashboard-copy`
+Next, go to: `http://localhost:8080/api/v5/report/qaJCuCezz`, which will output the grafana-reporter PDF.
 
 ## Development
 
