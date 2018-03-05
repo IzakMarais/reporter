@@ -24,7 +24,7 @@ const defaultTemplate = `
 
 \graphicspath{ {images/} }
 \begin{document}
-\title{[[.Title]] \\ \large [[.VariableValues]]}
+\title{[[.Title]] [[if .VariableValues]] \\ \large [[.VariableValues]] [[end]] [[if .Description]] \\ \small [[.Description]] [[end]]}
 \date{[[.FromFormatted]]\\to\\[[.ToFormatted]]}
 \maketitle
 \begin{center}

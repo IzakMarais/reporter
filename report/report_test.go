@@ -62,7 +62,7 @@ func TestReport(t *testing.T) {
 		variables := url.Values{}
 		variables.Add("var-test", "testvarvalue")
 		gClient := mockGrafanaClient{variables}
-		rep := New(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
+		rep := new(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
 		defer rep.Clean()
 
 		Convey("When rendering images", func() {

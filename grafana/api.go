@@ -35,25 +35,53 @@ type Client interface {
 }
 
 type client struct {
-	url       string
-	apiToken  string
-	variables url.Values
+	url              string
+	getDashEndpoint  func(dashName string) string
+	getPanelEndpoint func(dashName string, vals url.Values) string
+	apiToken         string
+	variables        url.Values
 }
 
 var getPanelRetrySleepTime = time.Duration(10) * time.Second
 
-// NewClient creates a new Grafana Client. If apiToken is the empty string,
+// NewV4Client creates a new Grafana 4 Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
 // variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
-func NewClient(url string, apiToken string, variables url.Values) Client {
-	return client{url, apiToken, variables}
+func NewV4Client(grafanaURL string, apiToken string, variables url.Values) Client {
+	getDashEndpoint := func(dashName string) string {
+		dashURL := grafanaURL + "/api/dashboards/db/" + dashName
+		if len(variables) > 0 {
+			dashURL = dashURL + "?" + variables.Encode()
+		}
+		return dashURL
+	}
+
+	getPanelEndpoint := func(dashName string, vals url.Values) string {
+		return fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", grafanaURL, dashName, vals.Encode())
+	}
+	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables}
+}
+
+// NewV5Client creates a new Grafana 5 Client. If apiToken is the empty string,
+// authorization headers will be omitted from requests.
+// variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
+func NewV5Client(grafanaURL string, apiToken string, variables url.Values) Client {
+	getDashEndpoint := func(dashName string) string {
+		dashURL := grafanaURL + "/api/dashboards/uid/" + dashName
+		if len(variables) > 0 {
+			dashURL = dashURL + "?" + variables.Encode()
+		}
+		return dashURL
+	}
+
+	getPanelEndpoint := func(dashName string, vals url.Values) string {
+		return fmt.Sprintf("%s/render/d-solo/%s/_?%s", grafanaURL, dashName, vals.Encode())
+	}
+	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables}
 }
 
 func (g client) GetDashboard(dashName string) (Dashboard, error) {
-	dashURL := g.url + "/api/dashboards/db/" + dashName
-	if len(g.variables) > 0 {
-		dashURL = dashURL + "?" + g.variables.Encode()
-	}
+	dashURL := g.getDashEndpoint(dashName)
 	log.Println("Connecting to dashboard at", dashURL)
 
 	client := &http.Client{}
@@ -145,7 +173,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 		}
 	}
 
-	url := fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", g.url, dashName, values.Encode())
+	url := g.getPanelEndpoint(dashName, values)
 	log.Println("Downloading image ", p.Id, url)
 	return url
 }
