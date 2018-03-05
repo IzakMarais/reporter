@@ -30,21 +30,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ServeReportHandler allows mocking of the grafana client and report generation
+// ServeReportHandler interface facilitates testsing the reportServing http handler
 type ServeReportHandler struct {
 	newGrafanaClient func(url string, apiToken string, variables url.Values) grafana.Client
 	newReport        func(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string) report.Report
 }
 
-//RegisterHandlers registers all http.Handler's with their associated routes to the router
-func RegisterHandlers(router *mux.Router, reportServer ServeReportHandler) {
-	router.Handle("/api/report/{dashName}", reportServer)
+// RegisterHandlers registers all http.Handler's with their associated routes to the router
+// Two different serve report handlers are used to provide support for both Grafana v4 (and older) and v5 APIs
+func RegisterHandlers(router *mux.Router, reportServerV4, reportServerV5 ServeReportHandler) {
+	router.Handle("/api/report/{dashId}", reportServerV4)
+	router.Handle("/api/v5/report/{dashId}", reportServerV5)
 }
 
 func (h ServeReportHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Print("Reporter called")
 	g := h.newGrafanaClient(*proto+*ip, apiToken(req), dashVariables(req))
-	rep := h.newReport(g, dashName(req), time(req), texTemplate(req))
+	rep := h.newReport(g, dashID(req), time(req), texTemplate(req))
 
 	file, err := rep.Generate()
 	if err != nil {
@@ -64,9 +66,9 @@ func (h ServeReportHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	log.Println("Report generated correctly")
 }
 
-func dashName(r *http.Request) string {
+func dashID(r *http.Request) string {
 	vars := mux.Vars(r)
-	d := vars["dashName"]
+	d := vars["dashId"]
 	log.Println("Called with dashboard:", d)
 	return d
 }

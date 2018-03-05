@@ -9,7 +9,7 @@ A simple http service that generates *.PDF reports from [Grafana](http://grafana
 
 Runtime requirements
 * `pdflatex` installed and available in PATH.
-* a running Grafana instance that it can connect to
+* a running Grafana instance that it can connect to. If you are using an old Grafana (version < v5.0), see  `Deprecated Endpoint` below.
 
 Build requirements:
 * [golang](https://golang.org/)
@@ -60,17 +60,29 @@ Next, open another browser window/tab and go to: `http://localhost:8080/api/repo
 
 The reporter serves a pdf report on the specified port at:
 
-    /api/report/{dashBoardName}
+    /api/v5/report/{dashboardUID}
 
-where `{dashBoardName}` is the same name as used in the Grafana dashboard's URL.
+where `{dashboardUID}` is the dashboard uid as used in the Grafana dashboard's URL.
+E.g. `SoT6hL6zk` from `http://grafana-host:3000/d/SoT6hL6zk/descriptive-name`.
+For more about this uid, see [the Grafana HTTP API](http://docs.grafana.org/http_api/dashboard/#identifier-id-vs-unique-identifier-uid).
+
+#### Deprecated Endpoint
+
+In Grafana v5.0, the Grafana HTTP API for dashboards was changed. The reporter still works with the previous Grafana API too, but serves pdf reports at a different endpoint.
+So, if you use Grafana v4, you need to download your reports from here instead:
+
+    /api/report/{dashboardname}
+
+where `{dashboardname}` is the same name as used in the Grafana v4 dashboard's URL.
 E.g. `backend-dashboard` from `http://grafana-host:3000/dashboard/db/backend-dashboard`.
+This endpoint is deprecated and may be dropped in a future release of the grafana-reporter.
 
 #### Query parameters
 
 The endpoint supports the following optional query parameters. These can be combined using standard
 URL query parameter syntax, eg:
 
-    /api/report/{dashBoardName}?apitoken=12345&var-host=devbox
+    /api/v5/report/{dashboardUID}?apitoken=12345&var-host=devbox
 
 **Time span** : The time span query parameter syntax is the same as used by Grafana.
 This means that you can create a Grafana Link and enable the _Time range_ forwarding check-box.

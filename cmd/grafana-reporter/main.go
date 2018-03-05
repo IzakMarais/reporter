@@ -41,7 +41,11 @@ func main() {
 	log.Printf("serving at '%s' and using grafana at '%s'", *port, *ip)
 
 	router := mux.NewRouter()
-	RegisterHandlers(router, ServeReportHandler{grafana.NewClient, report.New})
+	RegisterHandlers(
+		router,
+		ServeReportHandler{grafana.NewV4Client, report.New},
+		ServeReportHandler{grafana.NewV5Client, report.New},
+	)
 
 	log.Fatal(http.ListenAndServe(*port, router))
 }
