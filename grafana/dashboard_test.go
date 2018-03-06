@@ -23,34 +23,26 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const v4DashJSON = `
-{"Dashboard":
-	{"Rows":
-		[{"Panels":
-			[{"Type":"singlestat", "Id":1},
-			 {"Type":"graph", "Id":2}]
-		},
-		{"Panels":
-			[{"Type":"singlestat", "Id":3}]
-		}]
-	},
-"Meta":
-	{"Slug":"testDash"}
-}`
-
-const v5DashJSON = `
-{"Dashboard":
-	{"Panels":
-		[{"Type":"singlestat", "Id":1},
-		 {"Type":"graph", "Id":2},
-		 {"Type":"singlestat", "Id":3}]
-	},
-"Meta":
-	{"Slug":"testDash"}
-}`
-
 func TestV4Dashboard(t *testing.T) {
 	Convey("When creating a new dashboard from Grafana v4 dashboard JSON", t, func() {
+		const v4DashJSON = `
+{"Dashboard":
+	{
+		"Rows":
+			[{
+				"Panels":
+					[{"Type":"singlestat", "Id":1},
+					{"Type":"graph", "Id":2}],
+				"Title": "RowTitle #"
+			},
+			{"Panels":
+				[{"Type":"singlestat", "Id":3, "Title": "Panel3Title #"}]
+			}],
+		"title":"DashTitle #"
+	},
+"Meta":
+	{"Slug":"testDash"}
+}`
 		dash := NewDashboard([]byte(v4DashJSON), url.Values{})
 
 		Convey("Panel IsSingelStat should work for all panels", func() {
@@ -59,14 +51,44 @@ func TestV4Dashboard(t *testing.T) {
 			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
 		})
 
+		Convey("Row title should be parsed and santised", func() {
+			So(dash.Rows[0].Title, ShouldEqual, "RowTitle \\#")
+		})
+
+		Convey("Panel titles should be parsed and sanitised", func() {
+			So(dash.Panels[2].Title, ShouldEqual, "Panel3Title \\#")
+		})
+
+		Convey("When accessing Panels from within Rows, titles should still be sanitised", func() {
+			So(dash.Rows[1].Panels[0].Title, ShouldEqual, "Panel3Title \\#")
+		})
+
 		Convey("Panels should contain all panels from all rows", func() {
 			So(dash.Panels, ShouldHaveLength, 3)
+		})
+
+		Convey("The Title should be parsed and sanitised", func() {
+			So(dash.Title, ShouldEqual, "DashTitle \\#")
 		})
 	})
 }
 
 func TestV5Dashboard(t *testing.T) {
 	Convey("When creating a new dashboard from Grafana v5 dashboard JSON", t, func() {
+		const v5DashJSON = `
+{"Dashboard":
+	{
+		"Panels":
+			[{"Type":"singlestat", "Id":0},
+			{"Type":"graph", "Id":1},
+			{"Type":"singlestat", "Id":2, "Title":"Panel3Title #"},
+			{"Type":"row", "Id":3}],
+		"Title":"DashTitle #"
+	},
+
+"Meta":
+	{"Slug":"testDash"}
+}`
 		dash := NewDashboard([]byte(v5DashJSON), url.Values{})
 
 		Convey("Panel IsSingelStat should work for all panels", func() {
@@ -75,8 +97,19 @@ func TestV5Dashboard(t *testing.T) {
 			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
 		})
 
-		Convey("Panels should contain all panels from all rows", func() {
+		Convey("Panel titles should be parsed and sanitised", func() {
+			So(dash.Panels[2].Title, ShouldEqual, "Panel3Title \\#")
+		})
+
+		Convey("Panels should contain all panels that have type != row", func() {
 			So(dash.Panels, ShouldHaveLength, 3)
+			So(dash.Panels[0].Id, ShouldEqual, 0)
+			So(dash.Panels[1].Id, ShouldEqual, 1)
+			So(dash.Panels[2].Id, ShouldEqual, 2)
+		})
+
+		Convey("The Title should be parsed", func() {
+			So(dash.Title, ShouldEqual, "DashTitle \\#")
 		})
 	})
 }

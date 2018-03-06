@@ -70,14 +70,17 @@ func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate 
 func (rep *report) Generate() (pdf io.ReadCloser, err error) {
 	dash, err := rep.gClient.GetDashboard(rep.dashName)
 	if err != nil {
+		err = fmt.Errorf("error fetching dashboard %v: %v", rep.dashName, err)
 		return
 	}
 	err = rep.renderPNGsParallel(dash)
 	if err != nil {
+		err = fmt.Errorf("error rendering PNGs in parralel for dash %+v: %v", dash, err)
 		return
 	}
 	err = rep.generateTeXFile(dash)
 	if err != nil {
+		err = fmt.Errorf("error generating TeX file for dash %+v: %v", dash, err)
 		return
 	}
 	pdf, err = rep.runLaTeX()
@@ -127,7 +130,7 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 func (rep *report) renderPNG(p grafana.Panel) error {
 	body, err := rep.gClient.GetPanelPng(p, rep.dashName, rep.time)
 	if err != nil {
-		return fmt.Errorf("error getting panel: %v", err)
+		return fmt.Errorf("error getting panel %+v: %v", p, err)
 	}
 	defer body.Close()
 
@@ -149,31 +152,33 @@ func (rep *report) renderPNG(p grafana.Panel) error {
 	return nil
 }
 
-func (rep *report) generateTeXFile(dash grafana.Dashboard) (err error) {
+func (rep *report) generateTeXFile(dash grafana.Dashboard) error {
 	type templData struct {
 		grafana.Dashboard
 		grafana.TimeRange
 		grafana.Client
 	}
 
-	err = os.MkdirAll(rep.tmpDir, 0777)
+	err := os.MkdirAll(rep.tmpDir, 0777)
 	if err != nil {
-		return
+		return fmt.Errorf("error creating temporary directory at %v: %v", rep.tmpDir, err)
 	}
 	file, err := os.Create(rep.texPath())
 	if err != nil {
-		return
+		return fmt.Errorf("error creating tex file at %v : %v", rep.texPath(), err)
 	}
 	defer file.Close()
 
 	tmpl, err := template.New("report").Delims("[[", "]]").Parse(rep.texTemplate)
 	if err != nil {
-		err = fmt.Errorf("Error parsing template '%s': %q", rep.texTemplate, err)
-		return
+		return fmt.Errorf("error parsing template '%s': %v", rep.texTemplate, err)
 	}
 	data := templData{dash, rep.time, rep.gClient}
 	err = tmpl.Execute(file, data)
-	return
+	if err != nil {
+		return fmt.Errorf("error executing tex template:%v", err)
+	}
+	return nil
 }
 
 func (rep *report) runLaTeX() (pdf *os.File, err error) {
@@ -182,7 +187,7 @@ func (rep *report) runLaTeX() (pdf *os.File, err error) {
 	outBytesPre, errPre := cmdPre.CombinedOutput()
 	log.Println("Calling LaTeX - preprocessing")
 	if errPre != nil {
-		err = fmt.Errorf("Error calling LaTeX: %q. Latex preprocessing failed with output: %s ", errPre, string(outBytesPre))
+		err = fmt.Errorf("error calling LaTeX preprocessing: %q. Latex preprocessing failed with output: %s ", errPre, string(outBytesPre))
 		return
 	}
 	cmd := exec.Command("pdflatex", "-halt-on-error", reportTexFile)
@@ -190,7 +195,7 @@ func (rep *report) runLaTeX() (pdf *os.File, err error) {
 	outBytes, err := cmd.CombinedOutput()
 	log.Println("Calling LaTeX and building PDF")
 	if err != nil {
-		err = fmt.Errorf("Error calling LaTeX: %q. Latex failed with output: %s ", err, string(outBytes))
+		err = fmt.Errorf("error calling LaTeX: %q. Latex failed with output: %s ", err, string(outBytes))
 		return
 	}
 	pdf, err = os.Open(rep.pdfPath())

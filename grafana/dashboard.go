@@ -18,6 +18,7 @@ package grafana
 
 import (
 	"encoding/json"
+	"log"
 	"net/url"
 	"strings"
 	"fmt"
@@ -68,7 +69,9 @@ func NewDashboard(dashJSON []byte, variables url.Values) Dashboard {
 	if err != nil {
 		panic(err)
 	}
-	return dash.NewDashboard(variables)
+	d := dash.NewDashboard(variables)
+	log.Printf("Populated dashboard datastructure: %+v\n", d)
+	return d
 }
 
 func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
@@ -88,11 +91,12 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 /*- OLD Code -*/
 	for _, row := range dc.Dashboard.Rows {
 		row.Title = sanitizeLaTexInput(row.Title)
-		dash.Rows = append(dash.Rows, row)
-		for _, p := range row.Panels {
-			p.Title = sanitizeLaTexInput(row.Title)
+		for i, p := range row.Panels {
+			p.Title = sanitizeLaTexInput(p.Title)
+			row.Panels[i] = p
 			dash.Panels = append(dash.Panels, p)
 		}
+		dash.Rows = append(dash.Rows, row)
 	}
 /*- -*/
 
@@ -115,6 +119,9 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 
 func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
 	for _, p := range dc.Dashboard.Panels {
+		if p.Type == "row" {
+			continue
+		}
 		p.Title = sanitizeLaTexInput(p.Title)
 		dash.Panels = append(dash.Panels, p)
 	}
