@@ -96,6 +96,9 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 
 func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
 	for _, p := range dc.Dashboard.Panels {
+		if p.Type == "row" {
+			continue
+		}
 		p.Title = sanitizeLaTexInput(p.Title)
 		dash.Panels = append(dash.Panels, p)
 	}

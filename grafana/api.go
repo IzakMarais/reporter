@@ -131,7 +131,7 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (io.ReadClose
 
 	for retries := 1; retries < 3 && resp.StatusCode != 200; retries++ {
 		delay := getPanelRetrySleepTime * time.Duration(retries)
-		log.Printf("Error obtaining render for panel %v, Status: %v, Retrying after %v...", p, resp.StatusCode, delay)
+		log.Printf("Error obtaining render for panel %+v, Status: %v, Retrying after %v...", p, resp.StatusCode, delay)
 		time.Sleep(delay)
 		resp, err = client.Do(req)
 		if err != nil {
