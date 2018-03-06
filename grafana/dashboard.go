@@ -46,9 +46,9 @@ type Dashboard struct {
 	Title          string
 	Description    string
 	VariableValues string //Not present in the Grafana JSON structure. Enriched data passed used by the Tex templating
-	VArray         url.Values   //Not present in the Grafana JSON structure. Enriched data passed used by the Tex templating
 	Rows           []Row
 	Panels         []Panel
+	VArray         url.Values   //Not present in the Grafana JSON structure. Enriched data passed used by the Tex templating
 }
 
 type dashContainer struct {
@@ -56,10 +56,6 @@ type dashContainer struct {
 	Meta      struct {
 		Slug string
 	}
-}
-
-type aString struct {
-	Value string
 }
 
 // NewDashboard creates Dashboard from Grafana's internal JSON dashboard definition
@@ -139,6 +135,10 @@ func (r Row) IsVisible() bool {
 	return r.Showtitle
 }
 
+func (d Dashboard) GetCleanVar(s []string) string {
+	return strings.Trim(fmt.Sprintf(strings.Join(s, ", ")), "[]")
+}
+
 func getVariablesValues(variables url.Values) string {
 	values := []string{}
 	for _, v := range variables {
@@ -147,7 +147,6 @@ func getVariablesValues(variables url.Values) string {
 	return strings.Join(values, ", ")
 }
 
-
 func getVariablesArray(variables url.Values) url.Values {
 	values := url.Values{}
 	for k, v := range variables {
@@ -155,12 +154,6 @@ func getVariablesArray(variables url.Values) url.Values {
 	}
 	return values
 }
-
-func (s aString) getCleanVar() string {
-	return strings.Trim(fmt.Sprintf(s.Value), "[]")
-}
-
-
 
 func sanitizeLaTexInput(input string) string {
 	input = strings.Replace(input, "\\", "\\textbackslash ", -1)
