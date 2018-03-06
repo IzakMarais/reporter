@@ -87,7 +87,7 @@ func (g client) GetDashboard(dashName string) (Dashboard, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", dashURL, nil)
 	if err != nil {
-		return Dashboard{}, err
+		return Dashboard{}, fmt.Errorf("error creating getDashboard request for %v: %v", dashURL, err)
 	}
 
 	if g.apiToken != "" {
@@ -95,13 +95,13 @@ func (g client) GetDashboard(dashName string) (Dashboard, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return Dashboard{}, err
+		return Dashboard{}, fmt.Errorf("error executing getDashboard request for %v: %v", dashURL, err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Dashboard{}, nil
+		return Dashboard{}, fmt.Errorf("error reading getDashboard response body from %v: %v", dashURL, err)
 	}
 
 	if resp.StatusCode != 200 {
@@ -119,23 +119,23 @@ func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (io.ReadClose
 	}}
 	req, err := http.NewRequest("GET", panelURL, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating getPanelPng request for %v: %v", panelURL, err)
 	}
 	if g.apiToken != "" {
 		req.Header.Add("Authorization", "Bearer "+g.apiToken)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error executing getPanelPng request for %v: %v", panelURL, err)
 	}
 
 	for retries := 1; retries < 3 && resp.StatusCode != 200; retries++ {
 		delay := getPanelRetrySleepTime * time.Duration(retries)
-		log.Printf("Error  obtaining render for panel %v: %v. Retrying after %v...", p, resp.StatusCode, delay)
+		log.Printf("Error obtaining render for panel %v, Status: %v, Retrying after %v...", p, resp.StatusCode, delay)
 		time.Sleep(delay)
 		resp, err = client.Do(req)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error executing retry getPanelPng request for %v: %v", panelURL, err)
 		}
 	}
 
