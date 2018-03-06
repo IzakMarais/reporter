@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"strings"
+	"fmt"
 )
 
 // Panel represents a Grafana dashboard panel
@@ -44,6 +45,7 @@ type Dashboard struct {
 	Title          string
 	Description    string
 	VariableValues string //Not present in the Grafana JSON structure. Enriched data passed used by the Tex templating
+	VArray         url.Values   //Not present in the Grafana JSON structure. Enriched data passed used by the Tex templating
 	Rows           []Row
 	Panels         []Panel
 }
@@ -53,6 +55,10 @@ type dashContainer struct {
 	Meta      struct {
 		Slug string
 	}
+}
+
+type aString struct {
+	Value string
 }
 
 // NewDashboard creates Dashboard from Grafana's internal JSON dashboard definition
@@ -70,6 +76,7 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 	dash.Title = sanitizeLaTexInput(dc.Dashboard.Title)
 	dash.Description = sanitizeLaTexInput(dc.Dashboard.Description)
 	dash.VariableValues = sanitizeLaTexInput(getVariablesValues(variables))
+	dash.VArray = getVariablesArray(variables)
 
 	if len(dc.Dashboard.Rows) == 0 {
 		return populatePanelsFromV5JSON(dash, dc)
@@ -78,7 +85,7 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 }
 
 func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
-/*- OLD Code 
+/*- OLD Code -*/
 	for _, row := range dc.Dashboard.Rows {
 		row.Title = sanitizeLaTexInput(row.Title)
 		dash.Rows = append(dash.Rows, row)
@@ -87,9 +94,9 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 			dash.Panels = append(dash.Panels, p)
 		}
 	}
--*/
-
 /*- -*/
+
+/*- 
 	for _, row := range dc.Dashboard.Rows {
 		row.Title = sanitizeLaTexInput(row.Title)
 		plist := row.Panels
@@ -101,7 +108,7 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 		}
 		dash.Rows = append(dash.Rows, row)
 	}
-/*- -*/
+ -*/
 
 	return dash
 }
@@ -132,6 +139,21 @@ func getVariablesValues(variables url.Values) string {
 	}
 	return strings.Join(values, ", ")
 }
+
+
+func getVariablesArray(variables url.Values) url.Values {
+	values := url.Values{}
+	for k, v := range variables {
+		values.Add (sanitizeLaTexInput(k), sanitizeLaTexInput(strings.Join(v, ", ")))
+	}
+	return values
+}
+
+func (s aString) getCleanVar() string {
+	return strings.Trim(fmt.Sprintf(s.Value), "[]")
+}
+
+
 
 func sanitizeLaTexInput(input string) string {
 	input = strings.Replace(input, "\\", "\\textbackslash ", -1)
