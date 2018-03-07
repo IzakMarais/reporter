@@ -157,9 +157,9 @@ func (p Panel) GetExpandedVarStr(s string) string {
 			vname := strings.Split( k, "var-")[1]
 			vname1 := "\\$" + vname	// Since it has been sanitized before
 			if strings.Contains(s, vname1) {
-	log.Printf("Expansion String: %s %s %s\n", s, k, strings.Join(v," ") )
+//	log.Printf("Expansion String: %s %s %s\n", s, k, strings.Join(v," ") )
 				s = strings.Replace(s, vname1, strings.Join(v," "), -1 )
-	log.Printf("Expansion String: %s\n", s)
+//	log.Printf("Expansion String: %s\n", s)
 			}
 			vname2 := "[[" + vname + "]]"
 			if strings.Contains(s, vname2) {
