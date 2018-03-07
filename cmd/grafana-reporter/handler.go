@@ -25,8 +25,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JCN-9000/reporter/grafana"
-	"github.com/JCN-9000/reporter/report"
+	"github.com/IzakMarais/reporter/grafana"
+	"github.com/IzakMarais/reporter/report"
 	"github.com/gorilla/mux"
 )
 
