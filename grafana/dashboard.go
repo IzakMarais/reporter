@@ -29,6 +29,8 @@ type Panel struct {
 	Id    int
 	Type  string
 	Title string
+	Description string
+	Dash	*Dashboard
 }
 
 // Row represents a container for Panels
@@ -36,6 +38,7 @@ type Row struct {
 	Id        int
 	Showtitle bool
 	Title     string
+	Description     string
 	Panels    []Panel
 }
 
@@ -89,6 +92,8 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 		row.Title = sanitizeLaTexInput(row.Title)
 		for i, p := range row.Panels {
 			p.Title = sanitizeLaTexInput(p.Title)
+			p.Description = sanitizeLaTexInput(p.Description)
+			p.Dash = &dash
 			row.Panels[i] = p
 			dash.Panels = append(dash.Panels, p)
 		}
@@ -135,8 +140,53 @@ func (r Row) IsVisible() bool {
 	return r.Showtitle
 }
 
+// Clean Slice/Array of Strings from [] around it
 func (d Dashboard) GetCleanVar(s []string) string {
 	return strings.Trim(fmt.Sprintf(strings.Join(s, ", ")), "[]")
+}
+
+// Get the text of a Grafana Var given the Key ( var-XXX )
+func (d Dashboard) GetCleanVarKey(key string) string {
+	return strings.Trim(fmt.Sprintf(strings.Join(d.VArray[key], ", ")), "[]")
+}
+
+func (d Dashboard) GetExpandedVarStr(s string) string {
+	for k, v := range d.VArray {
+		if strings.Contains(k, "var-") {
+			vname := strings.Split( k, "var-")[1]
+			vname1 := "\\$" + vname	// Since it has been sanitized before
+			if strings.Contains(s, vname1) {
+				s = strings.Replace(s, vname1, strings.Join(v," "), -1 )
+			}
+			vname2 := "[[" + vname + "]]"
+			if strings.Contains(s, vname2) {
+				s = strings.Replace(s, vname2, strings.Join(v," "), -1 )
+			}
+		}
+	}
+	return s
+}
+
+func (p Panel) GetExpandedVarStr(s string) string {
+	d := p.Dash
+	for k, v := range d.VArray {
+		if strings.Contains(k, "var-") {
+			vname := strings.Split( k, "var-")[1]
+			vname1 := "\\$" + vname	// Since it has been sanitized before
+			if strings.Contains(s, vname1) {
+	log.Printf("Expansion String: %s %s %s\n", s, k, strings.Join(v," ") )
+				s = strings.Replace(s, vname1, strings.Join(v," "), -1 )
+	log.Printf("Expansion String: %s\n", s)
+			}
+			vname2 := "[[" + vname + "]]"
+			if strings.Contains(s, vname2) {
+				s = strings.Replace(s, vname2, strings.Join(v," "), -1 )
+			}
+		}
+	}
+
+	log.Printf("Expanded String: %s\n", s)
+	return s
 }
 
 func getVariablesValues(variables url.Values) string {
@@ -150,7 +200,8 @@ func getVariablesValues(variables url.Values) string {
 func getVariablesArray(variables url.Values) url.Values {
 	values := url.Values{}
 	for k, v := range variables {
-		values.Add (sanitizeLaTexInput(k), sanitizeLaTexInput(strings.Join(v, ", ")))
+//		values.Add (sanitizeLaTexInput(k), sanitizeLaTexInput(strings.Join(v, ", ")))
+		values.Add (k, strings.Join(v, ", "))
 	}
 	return values
 }
