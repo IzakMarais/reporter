@@ -87,7 +87,6 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 }
 
 func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
-/*- OLD Code -*/
 	for _, row := range dc.Dashboard.Rows {
 		row.Title = sanitizeLaTexInput(row.Title)
 		for i, p := range row.Panels {
@@ -99,22 +98,6 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 		}
 		dash.Rows = append(dash.Rows, row)
 	}
-/*- -*/
-
-/*- 
-	for _, row := range dc.Dashboard.Rows {
-		row.Title = sanitizeLaTexInput(row.Title)
-		plist := row.Panels
-		row.Panels = nil
-		for _, p := range plist {
-			p.Title = sanitizeLaTexInput(p.Title)
-			dash.Panels = append(dash.Panels, p)
-			row.Panels = append(row.Panels, p)
-		}
-		dash.Rows = append(dash.Rows, row)
-	}
- -*/
-
 	return dash
 }
 
