@@ -112,7 +112,7 @@ func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 			})
 
 			Convey(fmt.Sprintf("The %s client should request other panels in a larger size", clientDesc), func() {
-				grf.GetPanelPng(Panel{44, "graph", "title"}, "testDash", TimeRange{"now", "now-1h"})
+				grf.GetPanelPng(Panel{44, "graph", "title", "Desc", nil}, "testDash", TimeRange{"now", "now-1h"})
 				So(requestURI, ShouldContainSubstring, "width=1000")
 				So(requestURI, ShouldContainSubstring, "height=500")
 			})
