@@ -127,8 +127,9 @@ func TestVariableValues(t *testing.T) {
 		vars.Add("var-two", "twoval")
 		dash := NewDashboard([]byte(v5DashJSON), vars)
 
-		Convey("The dashboard should contain the variable values", func() {
-			So(dash.VariableValues, ShouldEqual, "oneval, twoval")
+		Convey("The dashboard should contain the variable values in a random order", func() {
+			So(dash.VariableValues, ShouldContainSubstring, "oneval")
+			So(dash.VariableValues, ShouldContainSubstring, "twoval")
 		})
 	})
 }
