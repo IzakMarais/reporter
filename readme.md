@@ -81,16 +81,15 @@ See the LaTeX code in `texTemplate.go` as an example of what variables are avail
 
 ### Docker examples (optional)
 
-If you also have `Make` and `Docker` installed, you can generate
-a docker image including grafana-reporter and `pdflatex`. First change directory :
+A Docker image [is available](https://hub.docker.com/r/izakmarais/grafana-reporter/). To see available flags:
 
-    cd github.com/IzakMarais/reporter
+    docker run izakmarais/grafana-reporter --help
 
-Next do (warning: the TeXLive install can take a long time):
+To run with default flags, use `--net` to enable Docker to connect to Grafana at `localhost:3000`:
 
-    make docker-build
+    docker run -p 8686:8686 --net="host" izakmarais/grafana-reporter
 
-If you also have `Docker-compose` installed, you can run a simple local orchestration of Grafana and Grafana-reporter:
+If you also have `Make` and `Docker-compose` installed, you can run a simple local orchestration of Grafana and Grafana-reporter:
 
      go get github.com/IzakMarais/reporter/ ...
      cd $GOPATH/src/github.com/IzakMarais/reporter
@@ -114,4 +113,5 @@ or, the [GoConvey](http://goconvey.co/) webGUI:
 
 ### Release
 
-A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.
+A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job. 
+Build the Docker image and push to Dockerhub.

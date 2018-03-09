@@ -108,23 +108,41 @@ func (rep *report) texPath() string {
 }
 
 func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
-	var wg sync.WaitGroup
-	wg.Add(len(dash.Panels))
-
-	var err error
+	//buffer all panels on a channel
+	panels := make(chan grafana.Panel, len(dash.Panels))
 	for _, p := range dash.Panels {
-		go func(p grafana.Panel) {
-			defer wg.Done()
-			err = rep.renderPNG(p)
-			if err != nil {
-				log.Printf("Error creating image for panel: %v", err)
-				return
-			}
-		}(p)
+		panels <- p
 	}
+	close(panels)
 
+	//fetch images in parrallel form Grafana sever.
+	//limit concurrency using a worker pool to avoid overwhelming grafana
+	//for dashboards with many panels.
+	var wg sync.WaitGroup
+	workers := 5
+	wg.Add(workers)
+	errs := make(chan error, len(dash.Panels)) //routines can return errors on a channel
+	for i := 0; i < workers; i++ {
+		go func(panels <-chan grafana.Panel, errs chan<- error) {
+			defer wg.Done()
+			for p := range panels {
+				err := rep.renderPNG(p)
+				if err != nil {
+					log.Printf("Error creating image for panel: %v", err)
+					errs <- err
+				}
+			}
+		}(panels, errs)
+	}
 	wg.Wait()
-	return err
+	close(errs)
+
+	for err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (rep *report) renderPNG(p grafana.Panel) error {

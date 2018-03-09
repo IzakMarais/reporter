@@ -113,3 +113,23 @@ func TestV5Dashboard(t *testing.T) {
 		})
 	})
 }
+
+func TestVariableValues(t *testing.T) {
+	Convey("When creating a dashboard and passing url varialbes in", t, func() {
+		const v5DashJSON = `
+{
+	"Dashboard":
+		{
+		}
+}`
+		vars := url.Values{}
+		vars.Add("var-one", "oneval")
+		vars.Add("var-two", "twoval")
+		dash := NewDashboard([]byte(v5DashJSON), vars)
+
+		Convey("The dashboard should contain the variable values in a random order", func() {
+			So(dash.VariableValues, ShouldContainSubstring, "oneval")
+			So(dash.VariableValues, ShouldContainSubstring, "twoval")
+		})
+	})
+}

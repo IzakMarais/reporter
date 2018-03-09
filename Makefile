@@ -6,7 +6,10 @@ build: $(TARGET)
 
 .PHONY: docker-build
 docker-build:
-	@docker build -t grafana-reporter:2.0.0 -t grafana-reporter:latest .
+	@docker build -t izakmarais/grafana-reporter:2.0.1 -t izakmarais/grafana-reporter:latest .
+
+docker-push:
+	@docker push izakmarais/grafana-reporter
 
 .PHONY: test
 test: $(TARGET)

@@ -16,7 +16,7 @@ services:
       - "3000:3000"
 
   reporter:
-    image: grafana-reporter:${gr_version:-latest}
+    image: izakmarais/grafana-reporter:${gr_version:-latest}
     command: "-ip grafana:3000"
     ports:
       - "8080:8686"
