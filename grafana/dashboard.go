@@ -28,6 +28,7 @@ type Panel struct {
 	Id    int
 	Type  string
 	Title string
+	Content string
 }
 
 // Row represents a container for Panels
@@ -39,8 +40,8 @@ type Row struct {
 }
 
 // Dashboard represents a Grafana dashboard
-// This is both used to unmarshal the dashbaord JSON into
-// and then enriched (sanitize fields for TeX consumption and add VarialbeValues)
+// This is both used to unmarshal the dashboard JSON into
+// and then enriched (sanitize fields for TeX consumption and add VariableValues)
 type Dashboard struct {
 	Title          string
 	Description    string
@@ -85,6 +86,7 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 		row.Title = sanitizeLaTexInput(row.Title)
 		for i, p := range row.Panels {
 			p.Title = sanitizeLaTexInput(p.Title)
+			p.Content = sanitizeLaTexInput(p.Content)
 			row.Panels[i] = p
 			dash.Panels = append(dash.Panels, p)
 		}
@@ -100,6 +102,7 @@ func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
 			continue
 		}
 		p.Title = sanitizeLaTexInput(p.Title)
+		p.Content = sanitizeLaTexInput(p.Content)
 		dash.Panels = append(dash.Panels, p)
 	}
 	return dash
@@ -110,6 +113,10 @@ func (p Panel) IsSingleStat() bool {
 		return true
 	}
 	return false
+}
+
+func (p Panel) IsText() bool {
+	return p.Type == "text"
 }
 
 func (r Row) IsVisible() bool {
