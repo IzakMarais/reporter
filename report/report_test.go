@@ -36,6 +36,7 @@ const dashJSON = `
 		"Rows":
 		[{"Panels":
 			[{"Type":"singlestat", "Id":1},
+             {"Type":"text", "Id":10},
 			 {"Type":"graph", "Id":22}]
 		},
 		{"Panels":
@@ -78,7 +79,7 @@ func TestReport(t *testing.T) {
 
 		Convey("When rendering images", func() {
 			dashboard, _ := gClient.GetDashboard("")
-			rep.renderPNGsParallel(dashboard)
+			rep.renderPanelsParallel(dashboard)
 
 			Convey("It should create a temporary folder", func() {
 				_, err := os.Stat(rep.tmpDir)
@@ -86,24 +87,24 @@ func TestReport(t *testing.T) {
 			})
 
 			Convey("It should copy the file to the image folder", func() {
-				_, err := os.Stat(rep.imgDirPath() + "/image1.png")
+				_, err := os.Stat(rep.dataDirPath() + "/image1.png")
 				So(err, ShouldBeNil)
 			})
 
-			Convey("It shoud call getPanelPng once per panel", func() {
+			Convey("It should call getPanelPng once per non-text panel", func() {
 				So(gClient.getPanelCallCount, ShouldEqual, 9)
 			})
 
 			Convey("It should create one file per panel", func() {
-				f, err := os.Open(rep.imgDirPath())
+				f, err := os.Open(rep.dataDirPath())
 				defer f.Close()
 				files, err := f.Readdir(0)
-				So(files, ShouldHaveLength, 9)
+				So(files, ShouldHaveLength, 10)
 				So(err, ShouldBeNil)
 			})
 		})
 
-		Convey("When genereting the Tex file", func() {
+		Convey("When generating the Tex file", func() {
 			dashboard, _ := gClient.GetDashboard("")
 			rep.generateTeXFile(dashboard)
 			f, err := os.Open(rep.texPath())
@@ -123,7 +124,7 @@ func TestReport(t *testing.T) {
 					So(s, ShouldContainSubstring, "My first dashboard")
 
 				})
-				Convey("Including the varialbe values", func() {
+				Convey("Including the variable values", func() {
 					So(s, ShouldContainSubstring, "testvarvalue")
 
 				})
@@ -137,6 +138,9 @@ func TestReport(t *testing.T) {
 					So(s, ShouldContainSubstring, "image77")
 					So(s, ShouldContainSubstring, "image88")
 					So(s, ShouldContainSubstring, "image99")
+				})
+				Convey("and the texts", func() {
+					So(s, ShouldContainSubstring, "text10")
 				})
 				Convey("and the time range", func() {
 					So(s, ShouldContainSubstring, "Tue Jan 19 12:27:27 UTC 2016")
@@ -164,7 +168,7 @@ func (e *errClient) GetDashboard(dashName string) (grafana.Dashboard, error) {
 	return grafana.NewDashboard([]byte(dashJSON), e.variables), nil
 }
 
-//Procude an error on the 2nd panel fetched
+//Produce an error on the 2nd panel fetched
 func (e *errClient) GetPanelPng(p grafana.Panel, dashName string, t grafana.TimeRange) (io.ReadCloser, error) {
 	e.getPanelCallCount++
 	if e.getPanelCallCount == 2 {
@@ -182,21 +186,21 @@ func TestReportErrorHandling(t *testing.T) {
 
 		Convey("When rendering images", func() {
 			dashboard, _ := gClient.GetDashboard("")
-			err := rep.renderPNGsParallel(dashboard)
+			err := rep.renderPanelsParallel(dashboard)
 
 			Convey("It shoud call getPanelPng once per panel", func() {
 				So(gClient.getPanelCallCount, ShouldEqual, 9)
 			})
 
 			Convey("It should create one less image file than the total number of panels", func() {
-				f, err := os.Open(rep.imgDirPath())
+				f, err := os.Open(rep.dataDirPath())
 				defer f.Close()
 				files, err := f.Readdir(0)
-				So(files, ShouldHaveLength, 8) //one less than the total number of im
+				So(files, ShouldHaveLength, 9) //one less than the total number of im
 				So(err, ShouldBeNil)
 			})
 
-			Convey("If any panels return errors, renderPNGsParralel should return the error message from one panel", func() {
+			Convey("If any panels return errors, renderPanelsParallel should return the error message from one panel", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "The second panel has some problem")
 			})

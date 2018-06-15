@@ -30,7 +30,7 @@ import (
 	"github.com/pborman/uuid"
 )
 
-// Report groups functions related to genrating the report.
+// Report groups functions related to generating the report.
 // After reading and closing the pdf returned by Generate(), call Clean() to delete the pdf file as well the temporary build files
 type Report interface {
 	Generate() (pdf io.ReadCloser, err error)
@@ -46,7 +46,7 @@ type report struct {
 }
 
 const (
-	imgDir        = "images"
+	dataDir       = "data"
 	reportTexFile = "report.tex"
 	reportPdf     = "report.pdf"
 )
@@ -73,9 +73,9 @@ func (rep *report) Generate() (pdf io.ReadCloser, err error) {
 		err = fmt.Errorf("error fetching dashboard %v: %v", rep.dashName, err)
 		return
 	}
-	err = rep.renderPNGsParallel(dash)
+	err = rep.renderPanelsParallel(dash)
 	if err != nil {
-		err = fmt.Errorf("error rendering PNGs in parralel for dash %+v: %v", dash, err)
+		err = fmt.Errorf("error rendering panels in parallel for dash %+v: %v", dash, err)
 		return
 	}
 	err = rep.generateTeXFile(dash)
@@ -95,8 +95,8 @@ func (rep *report) Clean() {
 	}
 }
 
-func (rep *report) imgDirPath() string {
-	return filepath.Join(rep.tmpDir, imgDir)
+func (rep *report) dataDirPath() string {
+	return filepath.Join(rep.tmpDir, dataDir)
 }
 
 func (rep *report) pdfPath() string {
@@ -107,7 +107,7 @@ func (rep *report) texPath() string {
 	return filepath.Join(rep.tmpDir, reportTexFile)
 }
 
-func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
+func (rep *report) renderPanelsParallel(dash grafana.Dashboard) error {
 	//buffer all panels on a channel
 	panels := make(chan grafana.Panel, len(dash.Panels))
 	for _, p := range dash.Panels {
@@ -115,7 +115,7 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 	}
 	close(panels)
 
-	//fetch images in parrallel form Grafana sever.
+	//fetch panel data in parallel form Grafana sever.
 	//limit concurrency using a worker pool to avoid overwhelming grafana
 	//for dashboards with many panels.
 	var wg sync.WaitGroup
@@ -126,7 +126,12 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 		go func(panels <-chan grafana.Panel, errs chan<- error) {
 			defer wg.Done()
 			for p := range panels {
-				err := rep.renderPNG(p)
+				var err error
+				if p.IsText() {
+					err = rep.renderTXT(p)
+				} else {
+					err = rep.renderPNG(p)
+				}
 				if err != nil {
 					log.Printf("Error creating image for panel: %v", err)
 					errs <- err
@@ -145,6 +150,25 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 	return nil
 }
 
+func (rep *report) renderTXT(p grafana.Panel) error {
+	err := os.MkdirAll(rep.dataDirPath(), 0777)
+	if err != nil {
+		return fmt.Errorf("error creating data directory:%v", err)
+	}
+	txtFileName := fmt.Sprintf("text%d.txt", p.Id)
+	file, err := os.Create(filepath.Join(rep.dataDirPath(), txtFileName))
+	if err != nil {
+		return fmt.Errorf("error creating text file:%v", err)
+	}
+	defer file.Close()
+
+	_, err = io.WriteString(file, p.Content)
+	if err != nil {
+		return fmt.Errorf("error writing panel content to file:%v", err)
+	}
+	return nil
+}
+
 func (rep *report) renderPNG(p grafana.Panel) error {
 	body, err := rep.gClient.GetPanelPng(p, rep.dashName, rep.time)
 	if err != nil {
@@ -152,12 +176,12 @@ func (rep *report) renderPNG(p grafana.Panel) error {
 	}
 	defer body.Close()
 
-	err = os.MkdirAll(rep.imgDirPath(), 0777)
+	err = os.MkdirAll(rep.dataDirPath(), 0777)
 	if err != nil {
-		return fmt.Errorf("error creating img directory:%v", err)
+		return fmt.Errorf("error creating data directory:%v", err)
 	}
 	imgFileName := fmt.Sprintf("image%d.png", p.Id)
-	file, err := os.Create(filepath.Join(rep.imgDirPath(), imgFileName))
+	file, err := os.Create(filepath.Join(rep.dataDirPath(), imgFileName))
 	if err != nil {
 		return fmt.Errorf("error creating image file:%v", err)
 	}

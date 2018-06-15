@@ -31,6 +31,13 @@ const defaultTemplate = `
 [[range .Panels]][[if .IsSingleStat]]\begin{minipage}{0.3\textwidth}
 \includegraphics[width=\textwidth]{image[[.Id]]}
 \end{minipage}
+[[else if .IsText]]\end{center}
+\begingroup
+\obeylines
+\section*{[[.Title]]}
+\input{data/text[[.Id]].txt}%
+\endgroup
+\begin{center}
 [[else]]\par
 \vspace{0.5cm}
 \includegraphics[width=\textwidth]{image[[.Id]]}

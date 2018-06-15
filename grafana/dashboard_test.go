@@ -36,7 +36,8 @@ func TestV4Dashboard(t *testing.T) {
 				"Title": "RowTitle #"
 			},
 			{"Panels":
-				[{"Type":"singlestat", "Id":3, "Title": "Panel3Title #"}]
+				[{"Type":"singlestat", "Id":3, "Title": "Panel3Title #"},
+				 {"Type":"text", "Id":4, "Title": "Panel4Title ##", "Content": "~test"}]
 			}],
 		"title":"DashTitle #"
 	},
@@ -49,6 +50,14 @@ func TestV4Dashboard(t *testing.T) {
 			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)
 			So(dash.Panels[1].IsSingleStat(), ShouldBeFalse)
 			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
+			So(dash.Panels[3].IsSingleStat(), ShouldBeFalse)
+		})
+
+		Convey("Panel IsText should work for all panels", func() {
+			So(dash.Panels[0].IsText(), ShouldBeFalse)
+			So(dash.Panels[1].IsText(), ShouldBeFalse)
+			So(dash.Panels[2].IsText(), ShouldBeFalse)
+			So(dash.Panels[3].IsText(), ShouldBeTrue)
 		})
 
 		Convey("Row title should be parsed and santised", func() {
@@ -59,12 +68,16 @@ func TestV4Dashboard(t *testing.T) {
 			So(dash.Panels[2].Title, ShouldEqual, "Panel3Title \\#")
 		})
 
+		Convey("Panel contents should be parsed and sanitised", func() {
+			So(dash.Panels[3].Content, ShouldEqual, "\\textasciitilde test")
+		})
+
 		Convey("When accessing Panels from within Rows, titles should still be sanitised", func() {
 			So(dash.Rows[1].Panels[0].Title, ShouldEqual, "Panel3Title \\#")
 		})
 
 		Convey("Panels should contain all panels from all rows", func() {
-			So(dash.Panels, ShouldHaveLength, 3)
+			So(dash.Panels, ShouldHaveLength, 4)
 		})
 
 		Convey("The Title should be parsed and sanitised", func() {
@@ -82,7 +95,8 @@ func TestV5Dashboard(t *testing.T) {
 			[{"Type":"singlestat", "Id":0},
 			{"Type":"graph", "Id":1},
 			{"Type":"singlestat", "Id":2, "Title":"Panel3Title #"},
-			{"Type":"row", "Id":3}],
+			{"Type":"row", "Id":3},
+			{"Type":"text", "Id":4, "Title": "Panel4Title ##", "Content": "~test"}],
 		"Title":"DashTitle #"
 	},
 
@@ -95,17 +109,23 @@ func TestV5Dashboard(t *testing.T) {
 			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)
 			So(dash.Panels[1].IsSingleStat(), ShouldBeFalse)
 			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
+			So(dash.Panels[3].IsSingleStat(), ShouldBeFalse)
 		})
 
 		Convey("Panel titles should be parsed and sanitised", func() {
 			So(dash.Panels[2].Title, ShouldEqual, "Panel3Title \\#")
 		})
 
+		Convey("Panel contents should be parsed and sanitised", func() {
+			So(dash.Panels[3].Content, ShouldEqual, "\\textasciitilde test")
+		})
+
 		Convey("Panels should contain all panels that have type != row", func() {
-			So(dash.Panels, ShouldHaveLength, 3)
+			So(dash.Panels, ShouldHaveLength, 4)
 			So(dash.Panels[0].Id, ShouldEqual, 0)
 			So(dash.Panels[1].Id, ShouldEqual, 1)
 			So(dash.Panels[2].Id, ShouldEqual, 2)
+			So(dash.Panels[3].Id, ShouldEqual, 4)
 		})
 
 		Convey("The Title should be parsed", func() {
