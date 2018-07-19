@@ -50,7 +50,7 @@ const (
 )
 
 const (
-	relTimeRegExp      = "^now(-[0-9]+)([mhdwMy])$"
+	relTimeRegExp      = "^now([+-][0-9]+)([mhdwMy])$"
 	boundaryTimeRegExp = "^(.*?)/([dwMy])$"
 )
 
