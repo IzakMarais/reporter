@@ -51,6 +51,14 @@ func TestTimeParsing(tst *testing.T) {
 			So(t.parseTo("now-58m"), sameTimeAs, testNow.Add(d))
 		})
 
+		Convey("Positive relative time is supported", func() {
+			d, _ := time.ParseDuration("+1m")
+			So(t.parseTo("now+1m"), sameTimeAs, testNow.Add(d))
+
+			d, _ = time.ParseDuration("+58m")
+			So(t.parseTo("now+58m"), sameTimeAs, testNow.Add(d))
+		})
+
 		Convey("Hours are supported", func() {
 			d, _ := time.ParseDuration("-3h")
 			So(t.parseTo("now-3h"), sameTimeAs, testNow.Add(d))
