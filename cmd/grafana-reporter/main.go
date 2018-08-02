@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var proto = flag.String("proto", "http://", "Grafana Protocol")
+var proto = flag.String("proto", "http://", "Grafana Protocol. Change to 'https://' if Grafana is using https. Reporter will still serve http.")
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
