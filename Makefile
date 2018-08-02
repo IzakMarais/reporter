@@ -1,4 +1,12 @@
+# Running on Windows:
+#   use git bash
+#   set GOPATH example
+#      GOPATH=/t/repos/reporter
+
 TARGET:=$(GOPATH)/bin/grafana-reporter
+ifeq ($(OS),Windows_NT)
+	TARGET:=$(GOPATH)/bin/grafana-reporter.exe
+endif
 SRC:=$(GOPATH)/src/github.com/IzakMarais/reporter
 
 .PHONY: build
@@ -15,11 +23,17 @@ docker-push:
 test: $(TARGET)
 	@go test -v ./...
 
+.PHONY test2:
+	@echo hello $(TARGET)
+
 $(GOPATH)/bin/dep:
 	@go get -u github.com/golang/dep/cmd/dep
 
-$(TARGET): $(GOPATH)/bin/dep
+update-deps: $(GOPATH)/bin/dep
 	@cd $(SRC) && dep ensure
+	@cd $(SRC)/cmd/grafana-reporter && go install
+
+$(TARGET):
 	@cd $(SRC)/cmd/grafana-reporter && go install
 
 .PHONY: compose-up
