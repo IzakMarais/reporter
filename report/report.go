@@ -34,6 +34,7 @@ import (
 // After reading and closing the pdf returned by Generate(), call Clean() to delete the pdf file as well the temporary build files
 type Report interface {
 	Generate() (pdf io.ReadCloser, err error)
+	Title() string
 	Clean()
 }
 
@@ -43,6 +44,7 @@ type report struct {
 	texTemplate string
 	dashName    string
 	tmpDir      string
+	dashTitle   string
 }
 
 const (
@@ -62,7 +64,7 @@ func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate 
 		texTemplate = defaultTemplate
 	}
 	tmpDir := filepath.Join("tmp", uuid.New())
-	return &report{g, time, texTemplate, dashName, tmpDir}
+	return &report{g, time, texTemplate, dashName, tmpDir, ""}
 }
 
 // Generate returns the report.pdf file.  After reading this file it should be Closed()
@@ -73,6 +75,8 @@ func (rep *report) Generate() (pdf io.ReadCloser, err error) {
 		err = fmt.Errorf("error fetching dashboard %v: %v", rep.dashName, err)
 		return
 	}
+	rep.dashTitle = dash.Title
+
 	err = rep.renderPNGsParallel(dash)
 	if err != nil {
 		err = fmt.Errorf("error rendering PNGs in parralel for dash %+v: %v", dash, err)
@@ -85,6 +89,19 @@ func (rep *report) Generate() (pdf io.ReadCloser, err error) {
 	}
 	pdf, err = rep.runLaTeX()
 	return
+}
+
+// Title returns the dashboard title parsed from the dashboard definition
+func (rep *report) Title() string {
+	//lazy fetch if Title() is called before Generate()
+	if rep.dashTitle == "" {
+		dash, err := rep.gClient.GetDashboard(rep.dashName)
+		if err != nil {
+			return ""
+		}
+		rep.dashTitle = dash.Title
+	}
+	return rep.dashTitle
 }
 
 // Clean deletes the temporary directory used during report generation

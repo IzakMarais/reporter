@@ -1,7 +1,7 @@
-# Running on Windows:
-#   use git bash
-#   set GOPATH example
-#      GOPATH=/t/repos/reporter
+# Running on Windows
+#
+# Set GOPATH in terminal. Example (make for windows needs forwardslashes):
+#   set GOPATH=T:/repos/reporter
 
 TARGET:=$(GOPATH)/bin/grafana-reporter
 ifeq ($(OS),Windows_NT)

@@ -17,12 +17,14 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/IzakMarais/reporter/grafana"
@@ -56,6 +58,7 @@ func (h ServeReportHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	}
 	defer rep.Clean()
 	defer file.Close()
+	addFilenameHeader(w, rep.Title())
 
 	_, err = io.Copy(w, file)
 	if err != nil {
@@ -64,6 +67,17 @@ func (h ServeReportHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 	log.Println("Report generated correctly")
+}
+
+func addFilenameHeader(w http.ResponseWriter, title string) {
+	//sanitize title. Http headers should be ASCII
+	filename := strconv.QuoteToASCII(title)
+	filename = strings.TrimLeft(filename, "\"")
+	filename = strings.TrimRight(filename, "\"")
+	filename += ".pdf"
+	log.Println("Extracted filename from dashboard title: ", filename)
+	header := fmt.Sprintf("inline; filename=\"%s\"", filename)
+	w.Header().Add("Content-Disposition", header)
 }
 
 func dashID(r *http.Request) string {

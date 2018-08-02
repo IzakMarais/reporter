@@ -40,6 +40,8 @@ func (m mockReport) Generate() (pdf io.ReadCloser, err error) {
 
 func (m mockReport) Clean() {}
 
+func (m mockReport) Title() string { return "title" }
+
 func TestV4ServeReportHandler(t *testing.T) {
 	Convey("When the v4 report server handler is called", t, func() {
 		//mock new grafana client function to capture and validate its input parameters
