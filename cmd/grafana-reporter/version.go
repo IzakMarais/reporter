@@ -18,6 +18,6 @@ package main
 
 //When making new release also tag git repo and update Makefile docker-buil job
 const generatedMajor = "2"
-const generatedMinor = "0"
-const generatedRelease = "1"
-const generatedGitHash = "098683c4db326f42728f8d1aadc876f1e826098e"
+const generatedMinor = "1"
+const generatedRelease = "0"
+const generatedGitHash = "997082a234c053fad981efaccf3f2332c6ba5ed2"
