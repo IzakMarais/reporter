@@ -97,11 +97,6 @@ func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 				So(requestURI, ShouldContainSubstring, "to=now")
 			})
 
-			Convey(fmt.Sprintf("The %s client should render singlestat panels should request a smaller size", clientDesc), func() {
-				So(requestURI, ShouldContainSubstring, "width=300")
-				So(requestURI, ShouldContainSubstring, "height=150")
-			})
-
 			Convey(fmt.Sprintf("The %s client should insert auth token should in request header", clientDesc), func() {
 				So(requestHeaders.Get("Authorization"), ShouldContainSubstring, apiToken)
 			})
@@ -111,13 +106,23 @@ func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 				So(requestURI, ShouldContainSubstring, "var-port=adapter")
 			})
 
+			Convey(fmt.Sprintf("The %s client should request singlestat panels at a smaller size", clientDesc), func() {
+				So(requestURI, ShouldContainSubstring, "width=300")
+				So(requestURI, ShouldContainSubstring, "height=150")
+			})
+
+			Convey(fmt.Sprintf("The %s client should request text panels with a small height", clientDesc), func() {
+				grf.GetPanelPng(Panel{44, "text", "title"}, "testDash", TimeRange{"now", "now-1h"})
+				So(requestURI, ShouldContainSubstring, "width=1000")
+				So(requestURI, ShouldContainSubstring, "height=100")
+			})
+
 			Convey(fmt.Sprintf("The %s client should request other panels in a larger size", clientDesc), func() {
 				grf.GetPanelPng(Panel{44, "graph", "title"}, "testDash", TimeRange{"now", "now-1h"})
 				So(requestURI, ShouldContainSubstring, "width=1000")
 				So(requestURI, ShouldContainSubstring, "height=500")
 			})
 		}
-
 	})
 }
 

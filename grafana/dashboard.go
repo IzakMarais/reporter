@@ -23,6 +23,24 @@ import (
 	"strings"
 )
 
+type PanelType int
+
+const (
+	SingleStat PanelType = iota
+	Text
+	Graph
+	Table
+)
+
+func (p PanelType) string() string {
+	return [...]string{
+		"singlestat",
+		"text",
+		"graph",
+		"table",
+	}[p]
+}
+
 // Panel represents a Grafana dashboard panel
 type Panel struct {
 	Id    int
@@ -106,7 +124,11 @@ func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
 }
 
 func (p Panel) IsSingleStat() bool {
-	if p.Type == "singlestat" {
+	return p.Is(SingleStat)
+}
+
+func (p Panel) Is(t PanelType) bool {
+	if p.Type == t.string() {
 		return true
 	}
 	return false

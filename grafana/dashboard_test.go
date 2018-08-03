@@ -45,10 +45,13 @@ func TestV4Dashboard(t *testing.T) {
 }`
 		dash := NewDashboard([]byte(v4DashJSON), url.Values{})
 
-		Convey("Panel IsSingelStat should work for all panels", func() {
-			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)
-			So(dash.Panels[1].IsSingleStat(), ShouldBeFalse)
-			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
+		Convey("Panel Is(type) should work for all panels", func() {
+			So(dash.Panels[0].Is(Graph), ShouldBeFalse)
+			So(dash.Panels[0].Is(Text), ShouldBeFalse)
+			So(dash.Panels[0].Is(Table), ShouldBeFalse)
+			So(dash.Panels[0].Is(SingleStat), ShouldBeTrue)
+			So(dash.Panels[1].Is(Graph), ShouldBeTrue)
+			So(dash.Panels[2].Is(SingleStat), ShouldBeTrue)
 		})
 
 		Convey("Row title should be parsed and santised", func() {
@@ -82,7 +85,9 @@ func TestV5Dashboard(t *testing.T) {
 			[{"Type":"singlestat", "Id":0},
 			{"Type":"graph", "Id":1},
 			{"Type":"singlestat", "Id":2, "Title":"Panel3Title #"},
-			{"Type":"row", "Id":3}],
+			{"Type":"text", "Id":3},
+			{"Type":"table", "Id":4},
+			{"Type":"row", "Id":5}],
 		"Title":"DashTitle #"
 	},
 
@@ -91,10 +96,12 @@ func TestV5Dashboard(t *testing.T) {
 }`
 		dash := NewDashboard([]byte(v5DashJSON), url.Values{})
 
-		Convey("Panel IsSingelStat should work for all panels", func() {
-			So(dash.Panels[0].IsSingleStat(), ShouldBeTrue)
-			So(dash.Panels[1].IsSingleStat(), ShouldBeFalse)
-			So(dash.Panels[2].IsSingleStat(), ShouldBeTrue)
+		Convey("Panel Is(type) should work for all panels", func() {
+			So(dash.Panels[0].Is(SingleStat), ShouldBeTrue)
+			So(dash.Panels[1].Is(Graph), ShouldBeTrue)
+			So(dash.Panels[2].Is(SingleStat), ShouldBeTrue)
+			So(dash.Panels[3].Is(Text), ShouldBeTrue)
+			So(dash.Panels[4].Is(Table), ShouldBeTrue)
 		})
 
 		Convey("Panel titles should be parsed and sanitised", func() {
@@ -102,7 +109,7 @@ func TestV5Dashboard(t *testing.T) {
 		})
 
 		Convey("Panels should contain all panels that have type != row", func() {
-			So(dash.Panels, ShouldHaveLength, 3)
+			So(dash.Panels, ShouldHaveLength, 5)
 			So(dash.Panels[0].Id, ShouldEqual, 0)
 			So(dash.Panels[1].Id, ShouldEqual, 1)
 			So(dash.Panels[2].Id, ShouldEqual, 2)
