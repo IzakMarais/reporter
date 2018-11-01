@@ -79,6 +79,12 @@ Syntax `template=templateName` implies the grafana-reporter should have access t
 The `templates` directory can be set with a commandline parameter.
 See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
 
+### Command line mode
+
+Also you can generate report without actually run webserver in command line mode:
+
+    grafana-reporter -cmd=1 -apiKey [api-key] -ip localhost:3000 -dashboard ITeTdN2mk -ts from=now-1y -o out.pdf
+
 ### Docker examples (optional)
 
 A Docker image [is available](https://hub.docker.com/r/izakmarais/grafana-reporter/). To see available flags:
