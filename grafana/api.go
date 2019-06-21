@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"crypto/tls"
 )
 
 // Client is a Grafana API client
