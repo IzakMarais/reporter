@@ -83,7 +83,7 @@ func NewV5Client(grafanaURL string, apiToken string, variables url.Values) Clien
 func (g client) GetDashboard(dashName string) (Dashboard, error) {
 	dashURL := g.getDashEndpoint(dashName)
 	log.Println("Connecting to dashboard at", dashURL)
-	if *SSLCheck == "false" {
+	if *sslCheck == "false" {
 		tr := &http.Transport{
         TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
     }
