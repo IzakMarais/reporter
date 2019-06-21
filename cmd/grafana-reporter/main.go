@@ -31,6 +31,7 @@ var proto = flag.String("proto", "http://", "Grafana Protocol. Change to 'https:
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
+var SSLCheck = flag.String("ssl-check", "true", "Check the SSL issuer and validity")
 
 func main() {
 	flag.Parse()
