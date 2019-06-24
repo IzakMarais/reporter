@@ -32,13 +32,13 @@ var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
 
-//cmd mode params
-var cmdMode = flag.Bool("cmd", false, "command line mode (-cmd=1)")
-var dashboard = flag.String("dashboard", "", "dashboard identifier, required in cmd mode")
-var apiKey = flag.String("apiKey", "", "grafana api key, required in cmd mode")
-var apiVersion = flag.String("apiVersion", "v5", "api version: [v4, v5], required in cmd mode, example: -apiVersion v5")
-var outputFile = flag.String("o", "out.pdf", "output file, required in cmd mode")
-var timeSpan = flag.String("ts", "from=now-3h&to=now", "time span, required in cmd mode")
+//cmd line mode params
+var cmdMode = flag.Bool("cmd_enable", false, "enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)")
+var dashboard = flag.String("cmd_dashboard", "", "dashboard identifier, required (and only used) in command line mode")
+var apiKey = flag.String("cmd_apiKey", "", "grafana api key, required (and only used) in command line mode")
+var apiVersion = flag.String("cmd_apiVersion", "v5", "api version: [v4, v5], required (and only used) in command line mode, example: -apiVersion v5")
+var outputFile = flag.String("cmd_o", "out.pdf", "output file, required (and only used) in command line mode")
+var timeSpan = flag.String("cmd_ts", "from=now-3h&to=now", "time span, required (and only used) in command line mode")
 
 func main() {
 	flag.Parse()
@@ -56,6 +56,13 @@ func main() {
 	)
 
 	if *cmdMode {
+		log.Printf("Called with command line mode enabled, will save report to file and exit.")
+		log.Printf("Called with command line mode 'dashboard' '%s'", *dashboard)
+		log.Printf("Called with command line mode 'apiKey' '%s'", *apiKey)
+		log.Printf("Called with command line mode 'apiVersion' '%s'", *apiVersion)
+		log.Printf("Called with command line mode 'outputFile' '%s'", *outputFile)
+		log.Printf("Called with command line mode 'timeSpan' '%s'", *timeSpan)
+
 		if err := cmdHandler(router); err != nil {
 			log.Fatalln(err)
 		}

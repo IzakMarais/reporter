@@ -72,18 +72,21 @@ The link will render a dashboard with your current time range.
 When you create a link from Grafana, you can enable the _Variable values_ forwarding check-box.
 The link will render a dashboard with your current variable values.
 
-**apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. Syntax: `apitoken={your-tokenstring}`.
+**apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. 
+Syntax: `apitoken={your-tokenstring}`.
 
 **template**: Optionally specify a custom TeX template file.
 Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
-The `templates` directory can be set with a commandline parameter.
+The `templates` directory can be set with a command line parameter.
 See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
 
 ### Command line mode
 
-Also you can generate report without actually run webserver in command line mode:
+If you prefer to generate a report directly from the command line without running a webserver,
+command line mode enables this. All flags related to command line mode are
+prefixed with `cmd_` to distinguish them from regular flags:
 
-    grafana-reporter -cmd=1 -apiKey [api-key] -ip localhost:3000 -dashboard ITeTdN2mk -ts from=now-1y -o out.pdf
+    grafana-reporter -cmd_enable=1 -cmd_apiKey [api-key] -ip localhost:3000 -cmd_dashboard ITeTdN2mk -cmd_ts from=now-1y -cmd_o out.pdf
 
 ### Docker examples (optional)
 
