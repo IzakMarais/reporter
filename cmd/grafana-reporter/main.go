@@ -31,6 +31,7 @@ var proto = flag.String("proto", "http://", "Grafana Protocol. Change to 'https:
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
+var sslCheck = flag.String("ssl-check", "true", "Check the SSL issuer and validity")
 
 //cmd line mode params
 var cmdMode = flag.Bool("cmd_enable", false, "enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)")
