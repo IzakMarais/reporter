@@ -7,7 +7,7 @@ RUN make build
 
 # create image
 FROM debian:stretch
-COPY util/texlive.profile /texlive.profile
+COPY util/texlive.profile /
 
 RUN PACKAGES="wget libswitch-perl" \
         && apt-get update \
