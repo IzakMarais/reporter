@@ -39,7 +39,11 @@ func main() {
 
 	//'generated*'' variables injected from build.gradle: task 'injectGoVersion()'
 	log.Printf("grafana reporter, version: %s.%s-%s hash: %s", generatedMajor, generatedMinor, generatedRelease, generatedGitHash)
-	log.Printf("serving at '%s' and using grafana at '%s'", *port, *ip)
+	sslState := "SSL check"
+	if !*sslCheck {
+		sslState = "No SSL check"
+	}
+	log.Printf("serving at '%s' and using grafana at '%s' %s", *port, *ip, sslState)
 
 	router := mux.NewRouter()
 	RegisterHandlers(

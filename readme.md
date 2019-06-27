@@ -1,18 +1,19 @@
-
 # Grafana reporter <img style="float: right;" src="https://travis-ci.org/IzakMarais/reporter.svg?branch=master">
 
-A simple http service that generates *.PDF reports from [Grafana](http://grafana.org/) dashboards.
+A simple http service that generates \*.PDF reports from [Grafana](http://grafana.org/) dashboards.
 
 ![demo](demo/report_v5.gif)
 
 ## Requirements
 
 Runtime requirements
-* `pdflatex` installed and available in PATH.
-* a running Grafana instance that it can connect to. If you are using an old Grafana (version < v5.0), see  `Deprecated Endpoint` below.
+
+- `pdflatex` installed and available in PATH.
+- a running Grafana instance that it can connect to. If you are using an old Grafana (version < v5.0), see `Deprecated Endpoint` below.
 
 Build requirements:
-* [golang](https://golang.org/)
+
+- [golang](https://golang.org/)
 
 ## Getting started
 
@@ -33,6 +34,10 @@ Running without any flags assumes Grafana is reachable at `localhost:3000`:
 Query available flags:
 
     grafana-reporter --help
+
+Deactivates the SSL checks:
+
+    grafana-reporter -ssl-check false
 
 ### Generate a dashboard report
 
@@ -96,7 +101,7 @@ If you also have `Make` and `Docker-compose` installed, you can run a simple loc
      make compose-up
 
 Then open a browser to `http://localhost:3000` and create a new test dashboard. Add the example graph and save the dashboard.
-Observe the new URL and find the dashboard UID, e.g. `qaJCuCezz` from  `http://localhost:3000/d/qaJCuCezz/new-dashboard-copy`
+Observe the new URL and find the dashboard UID, e.g. `qaJCuCezz` from `http://localhost:3000/d/qaJCuCezz/new-dashboard-copy`
 Next, go to: `http://localhost:8080/api/v5/report/qaJCuCezz`, which will output the grafana-reporter PDF.
 
 ## Development
@@ -113,5 +118,5 @@ or, the [GoConvey](http://goconvey.co/) webGUI:
 
 ### Release
 
-A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job. 
+A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.
 Build the Docker image and push to Dockerhub.
