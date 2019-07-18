@@ -96,7 +96,8 @@ When you create a link from Grafana, you can enable the _Variable values_ forwar
 The link will render a dashboard with your current variable values.
 
 **apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. 
-Syntax: `apitoken={your-tokenstring}`.
+Syntax: `apitoken={your-tokenstring}`. If you are getting `Got Status 401 Unauthorized, message: {"message":"Unauthorized"}`
+error messages, typically it is because you forgot to set this parameter. 
 
 **template**: Optionally specify a custom TeX template file.
 Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
