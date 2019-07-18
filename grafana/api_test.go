@@ -37,7 +37,7 @@ func TestGrafanaClientFetchesDashboard(t *testing.T) {
 		defer ts.Close()
 
 		Convey("When using the Grafana v4 client", func() {
-			grf := NewV4Client(ts.URL, "", url.Values{})
+			grf := NewV4Client(ts.URL, "", url.Values{}, true)
 			grf.GetDashboard("testDash")
 
 			Convey("It should use the v4 dashboards endpoint", func() {
@@ -46,7 +46,7 @@ func TestGrafanaClientFetchesDashboard(t *testing.T) {
 		})
 
 		Convey("When using the Grafana v5 client", func() {
-			grf := NewV5Client(ts.URL, "", url.Values{})
+			grf := NewV5Client(ts.URL, "", url.Values{}, true)
 			grf.GetDashboard("rYy7Paekz")
 
 			Convey("It should use the v5 dashboards endpoint", func() {
@@ -77,8 +77,8 @@ func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 			client      Client
 			pngEndpoint string
 		}{
-			"v4": {NewV4Client(ts.URL, apiToken, variables), "/render/dashboard-solo/db/testDash"},
-			"v5": {NewV5Client(ts.URL, apiToken, variables), "/render/d-solo/testDash/_"},
+			"v4": {NewV4Client(ts.URL, apiToken, variables, true), "/render/dashboard-solo/db/testDash"},
+			"v5": {NewV5Client(ts.URL, apiToken, variables, true), "/render/d-solo/testDash/_"},
 		}
 		for clientDesc, cl := range cases {
 			grf := cl.client
@@ -143,7 +143,7 @@ func TestGrafanaClientFetchPanelPNGErrorHandling(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		grf := NewV4Client(ts.URL, "", url.Values{})
+		grf := NewV4Client(ts.URL, "", url.Values{}, true)
 
 		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
 
@@ -158,7 +158,7 @@ func TestGrafanaClientFetchPanelPNGErrorHandling(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		grf := NewV4Client(ts.URL, "", url.Values{})
+		grf := NewV4Client(ts.URL, "", url.Values{}, true)
 
 		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
 

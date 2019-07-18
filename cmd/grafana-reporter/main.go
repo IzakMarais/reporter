@@ -31,6 +31,7 @@ var proto = flag.String("proto", "http://", "Grafana Protocol. Change to 'https:
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
+var sslCheck = flag.Bool("ssl-check", true, "Check the SSL issuer and validity. Set this to false if your grafana serves https using an unverified self-signed certificate.")
 
 //cmd line mode params
 var cmdMode = flag.Bool("cmd_enable", false, "enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)")
@@ -46,7 +47,12 @@ func main() {
 
 	//'generated*'' variables injected from build.gradle: task 'injectGoVersion()'
 	log.Printf("grafana reporter, version: %s.%s-%s hash: %s", generatedMajor, generatedMinor, generatedRelease, generatedGitHash)
-	log.Printf("serving at '%s' and using grafana at '%s'", *port, *ip)
+	log.Printf("serving at '%s' and using grafana at '%s'", *port, *proto+*ip)
+	if !*sslCheck {
+		log.Printf("SSL check disabled")
+	} else {
+		log.Printf("SSL check enforced")
+	}
 
 	router := mux.NewRouter()
 	RegisterHandlers(

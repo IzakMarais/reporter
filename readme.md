@@ -1,18 +1,19 @@
-
 # Grafana reporter <img style="float: right;" src="https://travis-ci.org/IzakMarais/reporter.svg?branch=master">
 
-A simple http service that generates *.PDF reports from [Grafana](http://grafana.org/) dashboards.
+A simple http service that generates \*.PDF reports from [Grafana](http://grafana.org/) dashboards.
 
 ![demo](demo/report_v5.gif)
 
 ## Requirements
 
 Runtime requirements
-* `pdflatex` installed and available in PATH.
-* a running Grafana instance that it can connect to. If you are using an old Grafana (version < v5.0), see  `Deprecated Endpoint` below.
+
+- `pdflatex` installed and available in PATH.
+- a running Grafana instance that it can connect to. If you are using an old Grafana (version < v5.0), see `Deprecated Endpoint` below.
 
 Build requirements:
-* [golang](https://golang.org/)
+
+- [golang](https://golang.org/)
 
 ## Getting started
 
@@ -30,9 +31,31 @@ Running without any flags assumes Grafana is reachable at `localhost:3000`:
 
     grafana-reporter
 
-Query available flags:
+Query available flags. Likely the only one you need to set is `-ip`. 
 
     grafana-reporter --help
+    -cmd_apiKey string
+        grafana api key, required (and only used) in command line mode
+    -cmd_apiVersion string
+        api version: [v4, v5], required (and only used) in command line mode, example: -apiVersion v5 (default "v5")
+    -cmd_dashboard string
+        dashboard identifier, required (and only used) in command line mode
+    -cmd_enable
+        enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)
+    -cmd_o string
+        output file, required (and only used) in command line mode (default "out.pdf")
+    -cmd_ts string
+        time span, required (and only used) in command line mode (default "from=now-3h&to=now")
+    -ip string
+        Grafana IP and port (default "localhost:3000")
+    -port string
+        Port to serve on (default ":8686")
+    -proto string
+        Grafana Protocol. Change to 'https://' if Grafana is using https. Reporter will still serve http. (default "http://")
+    -ssl-check
+        Check the SSL issuer and validity. Set this to false if your grafana serves https using an unverified self-signed certificate. (default true)   
+    -templates string
+        Directory for custom TeX templates (default "templates/")
 
 ### Generate a dashboard report
 
@@ -105,7 +128,7 @@ If you also have `Make` and `Docker-compose` installed, you can run a simple loc
      make compose-up
 
 Then open a browser to `http://localhost:3000` and create a new test dashboard. Add the example graph and save the dashboard.
-Observe the new URL and find the dashboard UID, e.g. `qaJCuCezz` from  `http://localhost:3000/d/qaJCuCezz/new-dashboard-copy`
+Observe the new URL and find the dashboard UID, e.g. `qaJCuCezz` from `http://localhost:3000/d/qaJCuCezz/new-dashboard-copy`
 Next, go to: `http://localhost:8080/api/v5/report/qaJCuCezz`, which will output the grafana-reporter PDF.
 
 ## Development
@@ -122,5 +145,5 @@ or, the [GoConvey](http://goconvey.co/) webGUI:
 
 ### Release
 
-A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job. 
+A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.
 Build the Docker image and push to Dockerhub.

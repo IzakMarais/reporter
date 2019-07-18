@@ -17,6 +17,7 @@
 package grafana
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -40,6 +41,7 @@ type client struct {
 	getPanelEndpoint func(dashName string, vals url.Values) string
 	apiToken         string
 	variables        url.Values
+	sslCheck         bool
 }
 
 var getPanelRetrySleepTime = time.Duration(10) * time.Second
@@ -47,7 +49,7 @@ var getPanelRetrySleepTime = time.Duration(10) * time.Second
 // NewV4Client creates a new Grafana 4 Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
 // variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
-func NewV4Client(grafanaURL string, apiToken string, variables url.Values) Client {
+func NewV4Client(grafanaURL string, apiToken string, variables url.Values, sslCheck bool) Client {
 	getDashEndpoint := func(dashName string) string {
 		dashURL := grafanaURL + "/api/dashboards/db/" + dashName
 		if len(variables) > 0 {
@@ -59,13 +61,13 @@ func NewV4Client(grafanaURL string, apiToken string, variables url.Values) Clien
 	getPanelEndpoint := func(dashName string, vals url.Values) string {
 		return fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", grafanaURL, dashName, vals.Encode())
 	}
-	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables}
+	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables, sslCheck}
 }
 
 // NewV5Client creates a new Grafana 5 Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
 // variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
-func NewV5Client(grafanaURL string, apiToken string, variables url.Values) Client {
+func NewV5Client(grafanaURL string, apiToken string, variables url.Values, sslCheck bool) Client {
 	getDashEndpoint := func(dashName string) string {
 		dashURL := grafanaURL + "/api/dashboards/uid/" + dashName
 		if len(variables) > 0 {
@@ -77,14 +79,16 @@ func NewV5Client(grafanaURL string, apiToken string, variables url.Values) Clien
 	getPanelEndpoint := func(dashName string, vals url.Values) string {
 		return fmt.Sprintf("%s/render/d-solo/%s/_?%s", grafanaURL, dashName, vals.Encode())
 	}
-	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables}
+	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables, sslCheck}
 }
 
 func (g client) GetDashboard(dashName string) (Dashboard, error) {
 	dashURL := g.getDashEndpoint(dashName)
 	log.Println("Connecting to dashboard at", dashURL)
-
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !g.sslCheck},
+	}
+	client := &http.Client{Transport: tr}
 	req, err := http.NewRequest("GET", dashURL, nil)
 	if err != nil {
 		return Dashboard{}, fmt.Errorf("error creating getDashboard request for %v: %v", dashURL, err)
