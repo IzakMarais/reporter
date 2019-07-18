@@ -102,6 +102,8 @@ Syntax: `apitoken={your-tokenstring}`.
 Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
 The `templates` directory can be set with a command line parameter.
 See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
+Also see [this issue](https://github.com/IzakMarais/reporter/issues/50) for an example. 
+
 
 ### Command line mode
 
