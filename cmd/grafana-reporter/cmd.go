@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"os"
-	"net/http"
-	"fmt"
-	"io"
 	"bytes"
+	"fmt"
+	"github.com/gorilla/mux"
+	"io"
+	"net/http"
+	"os"
 )
 
 type responseWriter struct {
@@ -34,6 +34,11 @@ func cmdHandler(router *mux.Router) error {
 	if *apiVersion == "v4" {
 		rqStr = "/api/report/%s?apitoken=%s&%s"
 	}
+
+	if template != nil && *template != "" {
+		rqStr += "&template=" + *template
+	}
+
 	rq, err := http.NewRequest("GET", fmt.Sprintf(rqStr, *dashboard, *apiKey, *timeSpan), nil)
 	if err != nil {
 		return err

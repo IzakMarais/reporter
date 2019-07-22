@@ -40,6 +40,7 @@ var apiKey = flag.String("cmd_apiKey", "", "grafana api key, required (and only 
 var apiVersion = flag.String("cmd_apiVersion", "v5", "api version: [v4, v5], required (and only used) in command line mode, example: -apiVersion v5")
 var outputFile = flag.String("cmd_o", "out.pdf", "output file, required (and only used) in command line mode")
 var timeSpan = flag.String("cmd_ts", "from=now-3h&to=now", "time span, required (and only used) in command line mode")
+var template = flag.String("cmd_template", "", "optionally specify a custom TeX template file")
 
 func main() {
 	flag.Parse()
@@ -68,6 +69,9 @@ func main() {
 		log.Printf("Called with command line mode 'apiVersion' '%s'", *apiVersion)
 		log.Printf("Called with command line mode 'outputFile' '%s'", *outputFile)
 		log.Printf("Called with command line mode 'timeSpan' '%s'", *timeSpan)
+		if template != nil && *template != "" {
+			log.Printf("Called with command line mode 'template' '%s'", *template)
+		}
 
 		if err := cmdHandler(router); err != nil {
 			log.Fatalln(err)
