@@ -118,9 +118,15 @@ func (g client) GetDashboard(dashName string) (Dashboard, error) {
 func (g client) GetPanelPng(p Panel, dashName string, t TimeRange) (io.ReadCloser, error) {
 	panelURL := g.getPanelURL(p, dashName, t)
 
-	client := &http.Client{CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		return errors.New("Error getting panel png. Redirected to login")
-	}}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !g.sslCheck},
+	}
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return errors.New("Error getting panel png. Redirected to login")
+		},
+		Transport: tr,
+	}
 	req, err := http.NewRequest("GET", panelURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating getPanelPng request for %v: %v", panelURL, err)
