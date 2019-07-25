@@ -10,7 +10,12 @@ endif
 SRC:=$(GOPATH)/src/github.com/IzakMarais/reporter
 
 .PHONY: build
-build: $(TARGET)
+build: 
+	go install -v github.com/IzakMarais/reporter/cmd/grafana-reporter
+
+.PHONY: clean
+clean:
+	rm $(TARGET)
 
 .PHONY: docker-build
 docker-build:
