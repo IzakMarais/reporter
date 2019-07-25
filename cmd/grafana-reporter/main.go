@@ -31,16 +31,16 @@ var proto = flag.String("proto", "http://", "Grafana Protocol. Change to 'https:
 var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
-var sslCheck = flag.Bool("ssl-check", true, "Check the SSL issuer and validity. Set this to false if your grafana serves https using an unverified self-signed certificate.")
+var sslCheck = flag.Bool("ssl-check", true, "Check the SSL issuer and validity. Set this to false if your Grafana serves https using an unverified, self-signed certificate.")
 
 //cmd line mode params
-var cmdMode = flag.Bool("cmd_enable", false, "enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)")
-var dashboard = flag.String("cmd_dashboard", "", "dashboard identifier, required (and only used) in command line mode")
-var apiKey = flag.String("cmd_apiKey", "", "grafana api key, required (and only used) in command line mode")
-var apiVersion = flag.String("cmd_apiVersion", "v5", "api version: [v4, v5], required (and only used) in command line mode, example: -apiVersion v5")
-var outputFile = flag.String("cmd_o", "out.pdf", "output file, required (and only used) in command line mode")
-var timeSpan = flag.String("cmd_ts", "from=now-3h&to=now", "time span, required (and only used) in command line mode")
-var template = flag.String("cmd_template", "", "optionally specify a custom TeX template file")
+var cmdMode = flag.Bool("cmd_enable", false, "Enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)")
+var dashboard = flag.String("cmd_dashboard", "", "Dashboard identifier. Required (and only used) in command line mode")
+var apiKey = flag.String("cmd_apiKey", "", "Grafana api key. Required (and only used) in command line mode")
+var apiVersion = flag.String("cmd_apiVersion", "v5", "Api version: [v4, v5]. Required (and only used) in command line mode, example: -apiVersion v5")
+var outputFile = flag.String("cmd_o", "out.pdf", "Output file. Required (and only used) in command line mode")
+var timeSpan = flag.String("cmd_ts", "from=now-3h&to=now", "Time span. Required (and only used) in command line mode")
+var template = flag.String("cmd_template", "", "Specify a custom TeX template file. Only used in command line mode, but is optional even there.")
 
 func main() {
 	flag.Parse()
