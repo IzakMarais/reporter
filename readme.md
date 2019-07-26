@@ -91,7 +91,10 @@ URL query parameter syntax, eg:
 
 **Time span**: The time span query parameter syntax is the same as used by Grafana.
 When you create a link from Grafana, you can enable the _Time range_ forwarding check-box.
-The link will render a dashboard with your current time range.
+The link will render a dashboard with your current time range. The default template
+will report include the time range in the report. 
+Times will be displayed using the reporter's host server time zone. 
+
 
 **variables**: The template variable query parameter syntax is the same as used by Grafana.
 When you create a link from Grafana, you can enable the _Variable values_ forwarding check-box.
