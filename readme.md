@@ -58,6 +58,9 @@ Query available flags. Likely the only one you need to set is `-ip`.
             Check the SSL issuer and validity. Set this to false if your grafana serves https using an unverified self-signed certificate. (default true)
     -templates string
             Directory for custom TeX templates (default "templates/")
+    -grid-layout 
+            Enable grid layout. Panel width and height will be calculated based off Grafana gridPos width and height.
+
 
 ### Generate a dashboard report
 

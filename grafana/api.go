@@ -42,6 +42,7 @@ type client struct {
 	apiToken         string
 	variables        url.Values
 	sslCheck         bool
+	gridLayout		 bool
 }
 
 var getPanelRetrySleepTime = time.Duration(10) * time.Second
@@ -49,7 +50,7 @@ var getPanelRetrySleepTime = time.Duration(10) * time.Second
 // NewV4Client creates a new Grafana 4 Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
 // variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
-func NewV4Client(grafanaURL string, apiToken string, variables url.Values, sslCheck bool) Client {
+func NewV4Client(grafanaURL string, apiToken string, variables url.Values, sslCheck bool, gridLayout bool) Client {
 	getDashEndpoint := func(dashName string) string {
 		dashURL := grafanaURL + "/api/dashboards/db/" + dashName
 		if len(variables) > 0 {
@@ -61,13 +62,13 @@ func NewV4Client(grafanaURL string, apiToken string, variables url.Values, sslCh
 	getPanelEndpoint := func(dashName string, vals url.Values) string {
 		return fmt.Sprintf("%s/render/dashboard-solo/db/%s?%s", grafanaURL, dashName, vals.Encode())
 	}
-	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables, sslCheck}
+	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables, sslCheck, gridLayout}
 }
 
 // NewV5Client creates a new Grafana 5 Client. If apiToken is the empty string,
 // authorization headers will be omitted from requests.
 // variables are Grafana template variable url values of the form var-{name}={value}, e.g. var-host=dev
-func NewV5Client(grafanaURL string, apiToken string, variables url.Values, sslCheck bool) Client {
+func NewV5Client(grafanaURL string, apiToken string, variables url.Values, sslCheck bool, gridLayout bool) Client {
 	getDashEndpoint := func(dashName string) string {
 		dashURL := grafanaURL + "/api/dashboards/uid/" + dashName
 		if len(variables) > 0 {
@@ -79,7 +80,7 @@ func NewV5Client(grafanaURL string, apiToken string, variables url.Values, sslCh
 	getPanelEndpoint := func(dashName string, vals url.Values) string {
 		return fmt.Sprintf("%s/render/d-solo/%s/_?%s", grafanaURL, dashName, vals.Encode())
 	}
-	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables, sslCheck}
+	return client{grafanaURL, getDashEndpoint, getPanelEndpoint, apiToken, variables, sslCheck, gridLayout}
 }
 
 func (g client) GetDashboard(dashName string) (Dashboard, error) {
@@ -167,16 +168,25 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	values.Add("panelId", strconv.Itoa(p.Id))
 	values.Add("from", t.From)
 	values.Add("to", t.To)
-	if p.Is(SingleStat) {
-		values.Add("width", "300")
-		values.Add("height", "150")
-	} else if p.Is(Text) {
-		values.Add("width", "1000")
-		values.Add("height", "100")
-	} else {
-		values.Add("width", "1000")
-		values.Add("height", "500")
+
+	if g.gridLayout {
+		width := p.GridPos.W * 40
+		height := p.GridPos.H * 40
+		values.Add("width", strconv.Itoa(width))
+		values.Add("height", strconv.Itoa(height))
+	}else {
+		if p.Is(SingleStat) {
+			values.Add("width", "300")
+			values.Add("height", "150")
+		} else if p.Is(Text) {
+			values.Add("width", "1000")
+			values.Add("height", "100")
+		} else {
+			values.Add("width", "1000")
+			values.Add("height", "500")
+		}
 	}
+
 
 	for k, v := range g.variables {
 		for _, singleValue := range v {
@@ -186,5 +196,6 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 
 	url := g.getPanelEndpoint(dashName, values)
 	log.Println("Downloading image ", p.Id, url)
+	log.Printf("%+v\n",p) 
 	return url
 }

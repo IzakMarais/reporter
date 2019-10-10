@@ -32,6 +32,7 @@ var ip = flag.String("ip", "localhost:3000", "Grafana IP and port")
 var port = flag.String("port", ":8686", "Port to serve on")
 var templateDir = flag.String("templates", "templates/", "Directory for custom TeX templates")
 var sslCheck = flag.Bool("ssl-check", true, "Check the SSL issuer and validity. Set this to false if your Grafana serves https using an unverified, self-signed certificate.")
+var gridLayout = flag.Bool("grid-layout", false, "Enable grid layout. Panel width and height will be calculated based off Grafana gridPos width and height.")
 
 //cmd line mode params
 var cmdMode = flag.Bool("cmd_enable", false, "Enable command line mode. Generate report from command line without starting webserver (-cmd_enable=1)")

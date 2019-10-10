@@ -46,6 +46,17 @@ type Panel struct {
 	Id    int
 	Type  string
 	Title string
+	GridPos GridPos 
+}
+
+
+// Panel represents a Grafana dashboard panel position
+type GridPos struct {
+	H	int `json:"h"`
+	W	int `json:"w"`
+	X	int `json:"x"`
+	Y	int `json:"y"`
+
 }
 
 // Row represents a container for Panels
@@ -125,6 +136,21 @@ func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
 
 func (p Panel) IsSingleStat() bool {
 	return p.Is(SingleStat)
+}
+
+func (p Panel) IsPartialWidth() bool {
+	fullWidth := (p.GridPos.W < 24)
+
+	log.Printf("IsFullWidth: %+v\n", fullWidth)
+	return fullWidth
+}
+
+func (p Panel) Width() float64 {
+	return float64(p.GridPos.W) * 0.04
+}
+
+func (p Panel) Height() float64 {
+	return float64(p.GridPos.H )* 0.04
 }
 
 func (p Panel) Is(t PanelType) bool {
