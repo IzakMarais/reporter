@@ -42,7 +42,7 @@ type client struct {
 	apiToken         string
 	variables        url.Values
 	sslCheck         bool
-	gridLayout		 bool
+	gridLayout       bool
 }
 
 var getPanelRetrySleepTime = time.Duration(10) * time.Second
@@ -174,7 +174,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 		height := p.GridPos.H * 40
 		values.Add("width", strconv.Itoa(width))
 		values.Add("height", strconv.Itoa(height))
-	}else {
+	} else {
 		if p.Is(SingleStat) {
 			values.Add("width", "300")
 			values.Add("height", "150")
@@ -187,7 +187,6 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 		}
 	}
 
-
 	for k, v := range g.variables {
 		for _, singleValue := range v {
 			values.Add(k, singleValue)
@@ -196,6 +195,5 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 
 	url := g.getPanelEndpoint(dashName, values)
 	log.Println("Downloading image ", p.Id, url)
-	log.Printf("%+v\n",p) 
 	return url
 }

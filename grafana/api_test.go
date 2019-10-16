@@ -37,7 +37,7 @@ func TestGrafanaClientFetchesDashboard(t *testing.T) {
 		defer ts.Close()
 
 		Convey("When using the Grafana v4 client", func() {
-			grf := NewV4Client(ts.URL, "", url.Values{}, true)
+			grf := NewV4Client(ts.URL, "", url.Values{}, true, false)
 			grf.GetDashboard("testDash")
 
 			Convey("It should use the v4 dashboards endpoint", func() {
@@ -46,7 +46,7 @@ func TestGrafanaClientFetchesDashboard(t *testing.T) {
 		})
 
 		Convey("When using the Grafana v5 client", func() {
-			grf := NewV5Client(ts.URL, "", url.Values{}, true)
+			grf := NewV5Client(ts.URL, "", url.Values{}, true, false)
 			grf.GetDashboard("rYy7Paekz")
 
 			Convey("It should use the v5 dashboards endpoint", func() {
@@ -77,12 +77,12 @@ func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 			client      Client
 			pngEndpoint string
 		}{
-			"v4": {NewV4Client(ts.URL, apiToken, variables, true), "/render/dashboard-solo/db/testDash"},
-			"v5": {NewV5Client(ts.URL, apiToken, variables, true), "/render/d-solo/testDash/_"},
+			"v4": {NewV4Client(ts.URL, apiToken, variables, true, false), "/render/dashboard-solo/db/testDash"},
+			"v5": {NewV5Client(ts.URL, apiToken, variables, true, false), "/render/d-solo/testDash/_"},
 		}
 		for clientDesc, cl := range cases {
 			grf := cl.client
-			grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
+			grf.GetPanelPng(Panel{44, "singlestat", "title", GridPos{0, 0, 0, 0}}, "testDash", TimeRange{"now-1h", "now"})
 
 			Convey(fmt.Sprintf("The %s client should use the render endpoint with the dashboard name", clientDesc), func() {
 				So(requestURI, ShouldStartWith, cl.pngEndpoint)
@@ -112,17 +112,41 @@ func TestGrafanaClientFetchesPanelPNG(t *testing.T) {
 			})
 
 			Convey(fmt.Sprintf("The %s client should request text panels with a small height", clientDesc), func() {
-				grf.GetPanelPng(Panel{44, "text", "title"}, "testDash", TimeRange{"now", "now-1h"})
+				grf.GetPanelPng(Panel{44, "text", "title", GridPos{0, 0, 0, 0}}, "testDash", TimeRange{"now", "now-1h"})
 				So(requestURI, ShouldContainSubstring, "width=1000")
 				So(requestURI, ShouldContainSubstring, "height=100")
 			})
 
 			Convey(fmt.Sprintf("The %s client should request other panels in a larger size", clientDesc), func() {
-				grf.GetPanelPng(Panel{44, "graph", "title"}, "testDash", TimeRange{"now", "now-1h"})
+				grf.GetPanelPng(Panel{44, "graph", "title", GridPos{0, 0, 0, 0}}, "testDash", TimeRange{"now", "now-1h"})
 				So(requestURI, ShouldContainSubstring, "width=1000")
 				So(requestURI, ShouldContainSubstring, "height=500")
 			})
 		}
+
+		casesGridLayout := map[string]struct {
+			client      Client
+			pngEndpoint string
+		}{
+			"v4": {NewV4Client(ts.URL, apiToken, variables, true, true), "/render/dashboard-solo/db/testDash"},
+			"v5": {NewV5Client(ts.URL, apiToken, variables, true, true), "/render/d-solo/testDash/_"},
+		}
+		for clientDesc, cl := range casesGridLayout {
+			grf := cl.client
+
+			Convey(fmt.Sprintf("The %s client should request grid layout panels with width=1000 and height=240", clientDesc), func() {
+				grf.GetPanelPng(Panel{44, "graph", "title", GridPos{6, 24, 0, 0}}, "testDash", TimeRange{"now", "now-1h"})
+				So(requestURI, ShouldContainSubstring, "width=960")
+				So(requestURI, ShouldContainSubstring, "height=240")
+			})
+
+			Convey(fmt.Sprintf("The %s client should request grid layout panels with width=480 and height=120", clientDesc), func() {
+				grf.GetPanelPng(Panel{44, "graph", "title", GridPos{3, 12, 0, 0}}, "testDash", TimeRange{"now", "now-1h"})
+				So(requestURI, ShouldContainSubstring, "width=480")
+				So(requestURI, ShouldContainSubstring, "height=120")
+			})
+		}
+
 	})
 }
 
@@ -143,9 +167,9 @@ func TestGrafanaClientFetchPanelPNGErrorHandling(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		grf := NewV4Client(ts.URL, "", url.Values{}, true)
+		grf := NewV4Client(ts.URL, "", url.Values{}, true, false)
 
-		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
+		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title", GridPos{0, 0, 0, 0}}, "testDash", TimeRange{"now-1h", "now"})
 
 		Convey("It should retry a couple of times if it receives errors", func() {
 			So(err, ShouldBeNil)
@@ -158,9 +182,9 @@ func TestGrafanaClientFetchPanelPNGErrorHandling(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		grf := NewV4Client(ts.URL, "", url.Values{}, true)
+		grf := NewV4Client(ts.URL, "", url.Values{}, true, false)
 
-		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title"}, "testDash", TimeRange{"now-1h", "now"})
+		_, err := grf.GetPanelPng(Panel{44, "singlestat", "title", GridPos{0, 0, 0, 0}}, "testDash", TimeRange{"now-1h", "now"})
 
 		Convey("The Grafana API should return an error", func() {
 			So(err, ShouldNotBeNil)

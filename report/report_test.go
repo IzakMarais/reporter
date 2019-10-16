@@ -73,7 +73,7 @@ func TestReport(t *testing.T) {
 		variables := url.Values{}
 		variables.Add("var-test", "testvarvalue")
 		gClient := &mockGrafanaClient{0, variables}
-		rep := new(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
+		rep := new(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "", false)
 		defer rep.Clean()
 
 		Convey("When rendering images", func() {
@@ -179,7 +179,7 @@ func TestReportErrorHandling(t *testing.T) {
 	Convey("When generating a report where one panels gives an error", t, func() {
 		variables := url.Values{}
 		gClient := &errClient{0, variables}
-		rep := new(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "")
+		rep := new(gClient, "testDash", grafana.TimeRange{"1453206447000", "1453213647000"}, "", false)
 		defer rep.Clean()
 
 		Convey("When rendering images", func() {

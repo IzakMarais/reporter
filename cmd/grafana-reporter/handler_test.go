@@ -47,14 +47,14 @@ func TestV4ServeReportHandler(t *testing.T) {
 		//mock new grafana client function to capture and validate its input parameters
 		var clAPIToken string
 		var clVars url.Values
-		newGrafanaClient := func(url string, apiToken string, variables url.Values, sslCheck bool) grafana.Client {
+		newGrafanaClient := func(url string, apiToken string, variables url.Values, sslCheck bool, gridLayout bool) grafana.Client {
 			clAPIToken = apiToken
 			clVars = variables
-			return grafana.NewV4Client(url, apiToken, variables, true)
+			return grafana.NewV4Client(url, apiToken, variables, true, false)
 		}
 		//mock new report function to capture and validate its input parameters
 		var repDashName string
-		newReport := func(g grafana.Client, dashName string, _ grafana.TimeRange, _ string) report.Report {
+		newReport := func(g grafana.Client, dashName string, _ grafana.TimeRange, _ string, _ bool) report.Report {
 			repDashName = dashName
 			return &mockReport{}
 		}
@@ -98,14 +98,14 @@ func TestV5ServeReportHandler(t *testing.T) {
 		//mock new grafana client function to capture and validate its input parameters
 		var clAPIToken string
 		var clVars url.Values
-		newGrafanaClient := func(url string, apiToken string, variables url.Values, sslCheck bool) grafana.Client {
+		newGrafanaClient := func(url string, apiToken string, variables url.Values, sslCheck bool, gridLayout bool) grafana.Client {
 			clAPIToken = apiToken
 			clVars = variables
-			return grafana.NewV4Client(url, apiToken, variables, true)
+			return grafana.NewV4Client(url, apiToken, variables, true, false)
 		}
 		//mock new report function to capture and validate its input parameters
 		var repDashName string
-		newReport := func(g grafana.Client, dashName string, _ grafana.TimeRange, _ string) report.Report {
+		newReport := func(g grafana.Client, dashName string, _ grafana.TimeRange, _ string, _ bool) report.Report {
 			repDashName = dashName
 			return &mockReport{}
 		}

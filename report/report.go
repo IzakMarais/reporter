@@ -66,7 +66,7 @@ func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate 
 		} else {
 			texTemplate = defaultTemplate
 		}
-		
+
 	}
 	tmpDir := filepath.Join("tmp", uuid.New())
 	return &report{g, time, texTemplate, dashName, tmpDir, ""}
