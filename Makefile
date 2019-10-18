@@ -9,13 +9,20 @@ ifeq ($(OS),Windows_NT)
 endif
 SRC:=$(GOPATH)/src/github.com/IzakMarais/reporter
 
+.PHONY: buildall
+buildall: build buildlinux
+
 .PHONY: build
 build: 
 	go install -v github.com/IzakMarais/reporter/cmd/grafana-reporter
 
+.PHONY: buildlinux 
+buildlinux: 	
+	cmd //v //c "set GOOS=linux&&go install -v github.com/IzakMarais/reporter/cmd/grafana-reporter"
+
 .PHONY: clean
-clean:
-	rm $(TARGET)
+clean: 	
+	rm -rf $(GOPATH)/bin
 
 .PHONY: docker-build
 docker-build:
