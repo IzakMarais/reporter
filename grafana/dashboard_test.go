@@ -83,7 +83,7 @@ func TestV5Dashboard(t *testing.T) {
 	{
 		"Panels":
 			[{"Type":"singlestat", "Id":0},
-			{"Type":"graph", "Id":1},
+			{"Type":"graph", "Id":1, "GridPos":{"H":6,"W":24,"X":0,"Y":0}},
 			{"Type":"singlestat", "Id":2, "Title":"Panel3Title #"},
 			{"Type":"text", "Id":3},
 			{"Type":"table", "Id":4},
@@ -117,6 +117,11 @@ func TestV5Dashboard(t *testing.T) {
 
 		Convey("The Title should be parsed", func() {
 			So(dash.Title, ShouldEqual, "DashTitle \\#")
+		})
+
+		Convey("Panels should contain GridPos H & W", func() {
+			So(dash.Panels[1].GridPos.H, ShouldEqual, 6)
+			So(dash.Panels[1].GridPos.W, ShouldEqual, 24)
 		})
 	})
 }

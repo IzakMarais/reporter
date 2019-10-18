@@ -55,13 +55,18 @@ const (
 
 // New creates a new Report.
 // texTemplate is the content of a LaTex template file. If empty, a default tex template is used.
-func New(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string) Report {
-	return new(g, dashName, time, texTemplate)
+func New(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string, gridLayout bool) Report {
+	return new(g, dashName, time, texTemplate, gridLayout)
 }
 
-func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string) *report {
+func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string, gridLayout bool) *report {
 	if texTemplate == "" {
-		texTemplate = defaultTemplate
+		if gridLayout {
+			texTemplate = defaultGridTemplate
+		} else {
+			texTemplate = defaultTemplate
+		}
+
 	}
 	tmpDir := filepath.Join("tmp", uuid.New())
 	return &report{g, time, texTemplate, dashName, tmpDir, ""}
