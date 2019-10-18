@@ -157,4 +157,6 @@ or, the [GoConvey](http://goconvey.co/) webGUI:
 ### Release
 
 A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.
-Build the Docker image and push to Dockerhub.
+
+Build the Docker image and push to Dockerhub. Build the Windows and Linux binaries and upload to Github
+using `make buildall`. 
