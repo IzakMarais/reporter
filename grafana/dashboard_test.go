@@ -85,7 +85,7 @@ func TestV5Dashboard(t *testing.T) {
 			[{"Type":"singlestat", "Id":0},
 			{"Type":"graph", "Id":1, "GridPos":{"H":6,"W":24,"X":0,"Y":0}},
 			{"Type":"singlestat", "Id":2, "Title":"Panel3Title #"},
-			{"Type":"text", "Id":3},
+			{"Type":"text", "GridPos":{"H":6.5,"W":20.5,"X":0,"Y":0}, "Id":3},
 			{"Type":"table", "Id":4},
 			{"Type":"row", "Id":5}],
 		"Title":"DashTitle #"
@@ -123,6 +123,17 @@ func TestV5Dashboard(t *testing.T) {
 			So(dash.Panels[1].GridPos.H, ShouldEqual, 6)
 			So(dash.Panels[1].GridPos.W, ShouldEqual, 24)
 		})
+
+		Convey("Panels GridPos should convert int to float", func() {
+			So(dash.Panels[1].GridPos.H, ShouldEqual, 6)
+			So(dash.Panels[1].GridPos.W, ShouldEqual, 24)
+		})
+
+		Convey("Panels GridPos should be floatt", func() {
+			So(dash.Panels[3].GridPos.H, ShouldEqual, 6.5)
+			So(dash.Panels[3].GridPos.W, ShouldEqual, 20.5)
+		})
+
 	})
 }
 
