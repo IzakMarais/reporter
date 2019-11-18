@@ -124,12 +124,7 @@ func TestV5Dashboard(t *testing.T) {
 			So(dash.Panels[1].GridPos.W, ShouldEqual, 24)
 		})
 
-		Convey("Panels GridPos should convert int to float", func() {
-			So(dash.Panels[1].GridPos.H, ShouldEqual, 6)
-			So(dash.Panels[1].GridPos.W, ShouldEqual, 24)
-		})
-
-		Convey("Panels GridPos should be floatt", func() {
+		Convey("Panels GridPos should allow floatt", func() {
 			So(dash.Panels[3].GridPos.H, ShouldEqual, 6.5)
 			So(dash.Panels[3].GridPos.W, ShouldEqual, 20.5)
 		})
