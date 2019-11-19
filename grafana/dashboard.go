@@ -51,10 +51,10 @@ type Panel struct {
 
 // Panel represents a Grafana dashboard panel position
 type GridPos struct {
-	H int `json:"h"`
-	W int `json:"w"`
-	X int `json:"x"`
-	Y int `json:"y"`
+	H float64 `json:"h"`
+	W float64 `json:"w"`
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 // Row represents a container for Panels
