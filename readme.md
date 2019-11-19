@@ -107,7 +107,8 @@ The link will render a dashboard with your current variable values.
 Syntax: `apitoken={your-tokenstring}`. If you are getting `Got Status 401 Unauthorized, message: {"message":"Unauthorized"}`
 error messages, typically it is because you forgot to set this parameter. 
 
-**template**: Optionally specify a custom TeX template file.
+**template**: Optionally specify a custom TeX template file. This should allow you to customise the
+report layout, for example add your company logo or generate a horizontal report. 
 Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
 The `templates` directory can be set with a command line parameter.
 See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
