@@ -112,6 +112,16 @@ func dashVariables(r *http.Request) url.Values {
 			for _, singleV := range v {
 				output.Add(k, singleV)
 			}
+		} else if k == "width" {
+			log.Println("Called with width: ", v)
+			for _, singleV := range v {
+				output.Add(k, singleV)
+			}
+		} else if k == "height" {
+			log.Println("Called with height: ", v)
+			for _, singleV := range v {
+				output.Add(k, singleV)
+			}
 		}
 	}
 	if len(output) == 0 {

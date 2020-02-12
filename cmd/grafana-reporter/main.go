@@ -42,6 +42,8 @@ var apiVersion = flag.String("cmd_apiVersion", "v5", "Api version: [v4, v5]. Req
 var outputFile = flag.String("cmd_o", "out.pdf", "Output file. Required (and only used) in command line mode.")
 var timeSpan = flag.String("cmd_ts", "from=now-3h&to=now", "Time span. Required (and only used) in command line mode.")
 var template = flag.String("cmd_template", "", "Specify a custom TeX template file. Only used in command line mode, but is optional even there.")
+var width = flag.String("cmd_width", "", "Specify a width for the dashboard. Only used in command line mode, but is optional even there.")
+var height = flag.String("cmd_height", "", "Specify a width for the dashboard. Only used in command line mode, but is optional even there.")
 
 func main() {
 	flag.Parse()
@@ -78,7 +80,12 @@ func main() {
 		if template != nil && *template != "" {
 			log.Printf("Called with command line mode 'template' '%s'", *template)
 		}
-
+		if width != nil && *width != "" {
+			log.Printf("Called with command line mode 'width' '%s'", *width)
+		}
+		if height != nil && *height != "" {
+			log.Printf("Called with command line mode 'height' '%s'", *height)
+		}
 		if err := cmdHandler(router); err != nil {
 			log.Fatalln(err)
 		}

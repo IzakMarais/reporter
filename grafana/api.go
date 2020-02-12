@@ -169,27 +169,47 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 	values.Add("from", t.From)
 	values.Add("to", t.To)
 
+	dashDims := map[string]bool{
+		"width":  true,
+		"height": true,
+	}
+
+	var wMultiplier, hMultiplier float64 = 40, 40
+	var panelWidth, panelHeight int = 1000, 500
+
+	if gwidth := g.variables.Get("width"); gwidth != "" {
+		val, _ := strconv.ParseFloat(gwidth, 64)
+		wMultiplier = val / 24
+	}
+
+	if gheight := g.variables.Get("height"); gheight != "" {
+		panelHeight, _ := strconv.ParseFloat(gheight, 64)
+		hMultiplier = panelHeight / 24
+	}
+
 	if g.gridLayout {
-		width := int(p.GridPos.W * 40)
-		height := int(p.GridPos.H * 40)
+		width := int(p.GridPos.W * wMultiplier)
+		height := int(p.GridPos.H * hMultiplier)
 		values.Add("width", strconv.Itoa(width))
 		values.Add("height", strconv.Itoa(height))
 	} else {
 		if p.Is(SingleStat) {
-			values.Add("width", "300")
-			values.Add("height", "150")
+			values.Add("width", strconv.Itoa(int(float64(panelWidth)*.3)))
+			values.Add("height", strconv.Itoa(int(float64(panelHeight)*.3)))
 		} else if p.Is(Text) {
-			values.Add("width", "1000")
-			values.Add("height", "100")
+			values.Add("width", strconv.Itoa(panelWidth))
+			values.Add("height", strconv.Itoa(int(float64(panelHeight)*.2)))
 		} else {
-			values.Add("width", "1000")
-			values.Add("height", "500")
+			values.Add("width", strconv.Itoa(panelWidth))
+			values.Add("height", strconv.Itoa(panelHeight))
 		}
 	}
 
 	for k, v := range g.variables {
 		for _, singleValue := range v {
-			values.Add(k, singleValue)
+			if !dashDims[k] {
+				values.Add(k, singleValue)
+			}
 		}
 	}
 

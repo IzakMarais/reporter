@@ -26,7 +26,7 @@ clean:
 
 .PHONY: docker-build
 docker-build:
-	@docker build -t izakmarais/grafana-reporter:2.3.0 -t izakmarais/grafana-reporter:latest .
+	@docker build -t izakmarais/grafana-reporter:2.4.1-beta -t izakmarais/grafana-reporter:latest .
 
 docker-push:
 	@docker push izakmarais/grafana-reporter

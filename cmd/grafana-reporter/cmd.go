@@ -38,6 +38,12 @@ func cmdHandler(router *mux.Router) error {
 	if template != nil && *template != "" {
 		rqStr += "&template=" + *template
 	}
+	if width != nil && *width != "" {
+		rqStr += "&width=" + *width
+	}
+	if height != nil && *height != "" {
+		rqStr += "&height=" + *height
+	}
 
 	rq, err := http.NewRequest("GET", fmt.Sprintf(rqStr, *dashboard, *apiKey, *timeSpan), nil)
 	if err != nil {

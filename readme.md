@@ -31,7 +31,7 @@ Running without any flags assumes Grafana is reachable at `localhost:3000`:
 
     grafana-reporter
 
-Query available flags. Likely the only one you need to set is `-ip`. 
+Query available flags. Likely the only one you need to set is `-ip`.
 
     grafana-reporter --help
     -cmd_apiKey string
@@ -48,6 +48,10 @@ Query available flags. Likely the only one you need to set is `-ip`.
           Specify a custom TeX template file. Only used in command line mode, but is optional even there.
     -cmd_ts string
           Time span. Required (and only used) in command line mode. (default "from=now-3h&to=now")
+    -cmd_width string
+          Width parameter, optional, specifies width of entire dashboard in `grid-layout` mode, or width of the panel otherwise
+    -cmd_height string
+         Height parameter, optional, specifies height of entire dashboard in `grid-layout` mode, or height of the panel otherwise
     -grid-layout
           Enable grid layout (-grid-layout=1). Panel width and height will be calculated based off Grafana gridPos width and height.
     -ip string
@@ -60,7 +64,6 @@ Query available flags. Likely the only one you need to set is `-ip`.
           Check the SSL issuer and validity. Set this to false if your Grafana serves https using an unverified, self-signed certificate. (default true)
     -templates string
           Directory for custom TeX templates. (default "templates/")
-
 
 ### Generate a dashboard report
 
@@ -95,24 +98,22 @@ URL query parameter syntax, eg:
 **Time span**: The time span query parameter syntax is the same as used by Grafana.
 When you create a link from Grafana, you can enable the _Time range_ forwarding check-box.
 The link will render a dashboard with your current time range.  
-By default, the time range will be included as the report sub-title. 
-Times are displayed using the reporter's host server time zone. 
-
+By default, the time range will be included as the report sub-title.
+Times are displayed using the reporter's host server time zone.
 
 **variables**: The template variable query parameter syntax is the same as used by Grafana.
 When you create a link from Grafana, you can enable the _Variable values_ forwarding check-box.
 The link will render a dashboard with your current variable values.
 
-**apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana. 
+**apitoken**: A Grafana authentication api token. Use this if you have auth enabled on Grafana.
 Syntax: `apitoken={your-tokenstring}`. If you are getting `Got Status 401 Unauthorized, message: {"message":"Unauthorized"}`
-error messages, typically it is because you forgot to set this parameter. 
+error messages, typically it is because you forgot to set this parameter.
 
 **template**: Optionally specify a custom TeX template file.
 Syntax `template=templateName` implies the grafana-reporter should have access to a template file on the server at `templates/templateName.tex`.
 The `templates` directory can be set with a command line parameter.
 See the LaTeX code in `texTemplate.go` as an example of what variables are available and how to access them.
-Also see [this issue](https://github.com/IzakMarais/reporter/issues/50) for an example. 
-
+Also see [this issue](https://github.com/IzakMarais/reporter/issues/50) for an example.
 
 ### Command line mode
 
@@ -159,4 +160,4 @@ or, the [GoConvey](http://goconvey.co/) webGUI:
 A new release requires changes to the git tag, `cmd/grafana-reporter/version.go` and `Makefile: docker-build` job.
 
 Build the Docker image and push to Dockerhub. Build the Windows and Linux binaries and upload to Github
-using `make buildall`. 
+using `make buildall`.
