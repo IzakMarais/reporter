@@ -46,6 +46,8 @@ Query available flags. Likely the only one you need to set is `-ip`.
           Output file. Required (and only used) in command line mode. (default "out.pdf")
     -cmd_template string
           Specify a custom TeX template file. Only used in command line mode, but is optional even there.
+    -cmd_title
+          Specify a custom title for the report. If empty, the title is taken from the Grafana dahsboard name.
     -cmd_ts string
           Time span. Required (and only used) in command line mode. (default "from=now-3h&to=now")
     -grid-layout
