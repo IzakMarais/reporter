@@ -58,6 +58,7 @@ Query available flags. Likely the only one you need to set is `-ip`.
           Grafana Protocol. Change to 'https://' if Grafana is using https. Reporter will still serve http. (default "http://")
     -ssl-check
           Check the SSL issuer and validity. Set this to false if your Grafana serves https using an unverified, self-signed certificate. (default true)
+          Set value with -ssl-check=false/true
     -templates string
           Directory for custom TeX templates. (default "templates/")
 
