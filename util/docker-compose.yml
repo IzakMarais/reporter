@@ -19,4 +19,4 @@ services:
     image: izakmarais/grafana-reporter:${gr_version:-latest}
     command: "-ip grafana:3000"
     ports:
-      - "8080:8686"
+      - "8686:8686"
