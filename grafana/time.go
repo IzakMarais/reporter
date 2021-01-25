@@ -22,11 +22,13 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+	"fmt"
 )
 
 type TimeRange struct {
 	From string
 	To   string
+	Timezone string
 }
 
 // Used to parse grafana time specifications. These can take various forms:
@@ -58,26 +60,40 @@ func init() {
 	log.SetOutput(ioutil.Discard)
 }
 
-func NewTimeRange(from, to string) TimeRange {
+func NewTimeRange(from, to, timezone string) TimeRange {
 	if from == "" {
 		from = "now-1h"
 	}
 	if to == "" {
 		to = "now"
 	}
-	return TimeRange{from, to}
+	if timezone == "" {
+		userZone, _ := time.Now().Zone()
+		timezone = userZone
+	}
+	return TimeRange{from, to, timezone}
 }
 
 // Formats Grafana 'From' time spec into absolute printable time
 func (tr TimeRange) FromFormatted() string {
+	location, err := time.LoadLocation(tr.Timezone)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	n := newNow()
-	return n.parseFrom(tr.From).Format(time.UnixDate)
+	return n.parseFrom(tr.From).In(location).Format(time.UnixDate)
 }
 
 // Formats Grafana 'To' time spec into absolute printable time
 func (tr TimeRange) ToFormatted() string {
+	location, err := time.LoadLocation(tr.Timezone)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	n := newNow()
-	return n.parseTo(tr.To).Format(time.UnixDate)
+	return n.parseTo(tr.To).In(location).Format(time.UnixDate);
 }
 
 func newNow() now {

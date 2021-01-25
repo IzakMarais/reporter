@@ -27,8 +27,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/IzakMarais/reporter/grafana"
-	"github.com/IzakMarais/reporter/report"
+	"github.com/iTransformers/reporter/grafana"
+	"github.com/iTransformers/reporter/report"
 	"github.com/gorilla/mux"
 )
 
@@ -93,7 +93,7 @@ func dashID(r *http.Request) string {
 
 func time(r *http.Request) grafana.TimeRange {
 	params := r.URL.Query()
-	t := grafana.NewTimeRange(params.Get("from"), params.Get("to"))
+	t := grafana.NewTimeRange(params.Get("from"), params.Get("to"), params.Get("timezone"))
 	log.Println("Called with time range:", t)
 	return t
 }
