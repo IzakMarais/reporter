@@ -47,6 +47,7 @@ type Panel struct {
 	Type    string
 	Title   string
 	GridPos GridPos
+	Panels []Panel
 }
 
 // Panel represents a Grafana dashboard panel position
@@ -124,8 +125,18 @@ func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
 func populatePanelsFromV5JSON(dash Dashboard, dc dashContainer) Dashboard {
 	for _, p := range dc.Dashboard.Panels {
 		if p.Type == "row" {
+			if len(p.Panels) == 0 {
+				continue
+			}
+
+			for _, rowPanel := range p.Panels {
+				rowPanel.Title = sanitizeLaTexInput(rowPanel.Title)
+				dash.Panels = append(dash.Panels, rowPanel)
+			}
+
 			continue
 		}
+
 		p.Title = sanitizeLaTexInput(p.Title)
 		dash.Panels = append(dash.Panels, p)
 	}
