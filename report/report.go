@@ -42,6 +42,7 @@ type report struct {
 	gClient     grafana.Client
 	time        grafana.TimeRange
 	texTemplate string
+	texTitle    string
 	dashName    string
 	tmpDir      string
 	dashTitle   string
@@ -55,11 +56,11 @@ const (
 
 // New creates a new Report.
 // texTemplate is the content of a LaTex template file. If empty, a default tex template is used.
-func New(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string, gridLayout bool) Report {
-	return new(g, dashName, time, texTemplate, gridLayout)
+func New(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string, texTitle string, gridLayout bool) Report {
+	return new(g, dashName, time, texTemplate, texTitle, gridLayout)
 }
 
-func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string, gridLayout bool) *report {
+func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate string, texTitle string, gridLayout bool) *report {
 	if texTemplate == "" {
 		if gridLayout {
 			texTemplate = defaultGridTemplate
@@ -69,7 +70,7 @@ func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate 
 
 	}
 	tmpDir := filepath.Join("tmp", uuid.New())
-	return &report{g, time, texTemplate, dashName, tmpDir, ""}
+	return &report{g, time, texTemplate, texTitle, dashName, tmpDir, ""}
 }
 
 // Generate returns the report.pdf file.  After reading this file it should be Closed()
@@ -81,6 +82,9 @@ func (rep *report) Generate() (pdf io.ReadCloser, err error) {
 		return
 	}
 	rep.dashTitle = dash.Title
+	if rep.texTitle != "" {
+		dash.Title = rep.texTitle
+	}
 
 	err = rep.renderPNGsParallel(dash)
 	if err != nil {
