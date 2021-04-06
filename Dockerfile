@@ -1,31 +1,31 @@
 # build
-FROM golang:1.8-stretch AS build
+FROM golang:1.14.7-alpine3.12 AS build
 WORKDIR /go/src/${owner:-github.com/IzakMarais}/reporter
-RUN apt-get update && apt-get -y install make git
+RUN apk update && apk add make git
 ADD . .
 RUN make build
 
 # create image
-FROM debian:stretch
+FROM alpine:3.12
 COPY util/texlive.profile /
 
 RUN PACKAGES="wget libswitch-perl" \
-        && apt-get update \
-        && apt-get install -y -qq $PACKAGES --no-install-recommends \
-        && apt-get install -y ca-certificates --no-install-recommends \
+        && apk update \
+        && apk add $PACKAGES \
+        && apk add ca-certificates \
         && wget -qO- \
           "https://github.com/yihui/tinytex/raw/master/tools/install-unx.sh" | \
           sh -s - --admin --no-path \
         && mv ~/.TinyTeX /opt/TinyTeX \
         && /opt/TinyTeX/bin/*/tlmgr path add \
         && tlmgr path add \
-        && chown -R root:staff /opt/TinyTeX \
+        && chown -R root:adm /opt/TinyTeX \
         && chmod -R g+w /opt/TinyTeX \
         && chmod -R g+wx /opt/TinyTeX/bin \
         && tlmgr install epstopdf-pkg \
         # Cleanup
-        && apt-get remove --purge -qq $PACKAGES \
-        && apt-get autoremove --purge -qq \
+        && apk del --purge -qq $PACKAGES \
+        && apk del --purge -qq \
         && rm -rf /var/lib/apt/lists/*
 
 
