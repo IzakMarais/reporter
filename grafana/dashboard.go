@@ -46,6 +46,7 @@ type Panel struct {
 	Id      int
 	Type    string
 	Title   string
+	Span    int
 	GridPos GridPos
 }
 
@@ -62,6 +63,7 @@ type Row struct {
 	Id        int
 	Showtitle bool
 	Title     string
+	Height    float64
 	Panels    []Panel
 }
 
@@ -108,14 +110,26 @@ func (dc dashContainer) NewDashboard(variables url.Values) Dashboard {
 }
 
 func populatePanelsFromV4JSON(dash Dashboard, dc dashContainer) Dashboard {
+	lastHeight := 0.0
 	for _, row := range dc.Dashboard.Rows {
+		h := row.Height / 80 * 2
+		lastWeight := 0.0
+
 		row.Title = sanitizeLaTexInput(row.Title)
 		for i, p := range row.Panels {
+			w := float64(p.Span * 2)
+			x := lastWeight
+			y := lastHeight
+			gridPos := GridPos{h, w, x, y}
 			p.Title = sanitizeLaTexInput(p.Title)
+			p.GridPos = gridPos
 			row.Panels[i] = p
 			dash.Panels = append(dash.Panels, p)
+
+			lastWeight = w
 		}
 		dash.Rows = append(dash.Rows, row)
+		lastHeight = h
 	}
 
 	return dash
