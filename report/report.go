@@ -142,6 +142,10 @@ func (rep *report) texPath() string {
 }
 
 func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
+	var (
+		wg sync.WaitGroup
+		workers = rep.getWorkerNum()
+	)
 	//buffer all panels on a channel
 	panels := make(chan grafana.Panel, len(dash.Panels))
 	for _, p := range dash.Panels {
@@ -152,8 +156,8 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 	//fetch images in parrallel form Grafana sever.
 	//limit concurrency using a worker pool to avoid overwhelming grafana
 	//for dashboards with many panels.
-	var wg sync.WaitGroup
-	wg.Add(rep.getWorkerNum())
+	
+	wg.Add(workers)
 	errs := make(chan error, len(dash.Panels)) //routines can return errors on a channel
 	for i := 0; i < workers; i++ {
 		go func(panels <-chan grafana.Panel, errs chan<- error) {
