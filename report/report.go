@@ -20,9 +20,12 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"sync"
 	"text/template"
 
@@ -70,6 +73,15 @@ func new(g grafana.Client, dashName string, time grafana.TimeRange, texTemplate 
 	}
 	tmpDir := filepath.Join("tmp", uuid.New())
 	return &report{g, time, texTemplate, dashName, tmpDir, ""}
+}
+
+func (rep *report) getWorkerNum() int {
+	var (
+		desiredWorkers, _ = strconv.Atoi(os.Getenv("MAX_WORKERS"))
+		maxWorkers = runtime.NumCPU()
+	)
+	desiredWorkers = int(math.Max(1, math.Min(float64(desiredWorkers), float64(maxWorkers))))
+	return desiredWorkers
 }
 
 // Generate returns the report.pdf file.  After reading this file it should be Closed()
@@ -141,8 +153,7 @@ func (rep *report) renderPNGsParallel(dash grafana.Dashboard) error {
 	//limit concurrency using a worker pool to avoid overwhelming grafana
 	//for dashboards with many panels.
 	var wg sync.WaitGroup
-	workers := 5
-	wg.Add(workers)
+	wg.Add(rep.getWorkerNum())
 	errs := make(chan error, len(dash.Panels)) //routines can return errors on a channel
 	for i := 0; i < workers; i++ {
 		go func(panels <-chan grafana.Panel, errs chan<- error) {
