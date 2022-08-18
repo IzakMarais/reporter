@@ -175,7 +175,7 @@ func (g client) getPanelURL(p Panel, dashName string, t TimeRange) string {
 		values.Add("width", strconv.Itoa(width))
 		values.Add("height", strconv.Itoa(height))
 	} else {
-		if p.Is(SingleStat) {
+		if p.Is(Stat) {
 			values.Add("width", "300")
 			values.Add("height", "150")
 		} else if p.Is(Text) {
