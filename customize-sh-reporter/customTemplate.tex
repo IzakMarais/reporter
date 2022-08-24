@@ -1,0 +1,55 @@
+%use square brackets as golang text templating delimiters
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[margin=0.6in]{geometry}
+\usepackage{amssymb}
+\usepackage{titling}
+\usepackage{hyperref}
+\hypersetup{
+colorlinks=true,
+linkcolor=blue,
+urlcolor=blue
+}
+\graphicspath{ {images/} }
+\makeatletter
+\newcommand{\ps@edbfooter}{
+\renewcommand{\@oddfoot}{\rmfamily \large Report prepared by SmartHub.ai\hfill \rmfamily {\thepage}}%
+\renewcommand{\@evenfoot}{\rmfamily \large Report prepared by SmartHub.ai\hfill \rmfamily{\thepage}}%
+}
+\newcommand{\ps@edbheader}{
+\renewcommand{\@oddhead}{\includegraphics[width=3.5cm]{/templates/logo.png}\hfill}%
+\renewcommand{\@evenhead}{\includegraphics[width=3.5cm]{/templates/logo.png}\hfill}%
+\renewcommand{\@oddfoot}{\rmfamily \large Report prepared by SmartHub.ai\hfill \rmfamily {\thepage}}%
+\renewcommand{\@evenfoot}{\rmfamily \large Report prepared by SmartHub.ai\hfill \rmfamily{\thepage}}%
+}
+\makeatother
+
+\pretitle{
+\vspace{1mm}
+\begin{center}
+\includegraphics[width=13.5cm]{/templates/logo.png}\LARGE\\}
+\posttitle{
+\end{center}
+}
+\begin{document}
+\title{ \vspace{30mm} \sffamily \Huge [[.Title]] [[if .VariableValues]] \\ [[.VariableValues]] [[end]] [[if .Description]] \\
+\vspace{0.5cm} \rmfamily \Large [[.Description]] [[end]]}
+\date{[[.FromFormatted]]\vspace{0.25cm}\\to\\\vspace{0.25cm}[[.ToFormatted]]}
+\maketitle
+\thispagestyle{edbfooter}
+\newpage
+\begin{center}
+\thispagestyle{edbheader}
+[[range .Panels]][[if .IsPartialWidth]]\begin{minipage}{[[.Width]]\textwidth}
+\includegraphics[width=\textwidth]{image[[.Id]]}
+\end{minipage}
+[[else]]\par
+\vspace{0.5cm}
+\includegraphics[width=\textwidth]{image[[.Id]]}
+\par
+\vspace{0.5cm}
+[[end]][[end]]
+\thispagestyle{edbheader}
+\end{center}
+\end{document}
